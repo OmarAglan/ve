@@ -312,26 +312,29 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         } else if (requestCode == CHOOSE_SAF_FILE_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
                 Uri fileUri = data.getData();
-                if (!isAcceptedSafUri(fileUri)) {
+                Uri safeFileUri = toAcceptedSafUri(fileUri);
+                if (safeFileUri == null) {
                     showErrorMessage(R.string.file_unknownerror, null);
                     return;
                 }
                 final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 try {
-                    getContentResolver().takePersistableUriPermission(fileUri, flags);
+                    getContentResolver().takePersistableUriPermission(safeFileUri, flags);
                 } catch (SecurityException e) {
                     // Continue; temporary grant from chooser can still be sufficient for this session.
                 }
 
                 TranslatableStringCollection tempCollection = new TranslatableStringCollection();
                 int parseResult;
+                InputStream in = null;
                 try {
-                    try (InputStream in = getContentResolver().openInputStream(fileUri)) {
+                    in = getContentResolver().openInputStream(safeFileUri);
                     if (in == null) {
                         showErrorMessage(R.string.file_ioerror, null);
                         return;
                     }
-                    parseResult = tempCollection.parse(in, this);
+                    try (InputStream stream = in) {
+                        parseResult = tempCollection.parse(stream, this);
                     }
                 } catch (IOException e) {
                     showErrorMessage(R.string.file_ioerror, null);
@@ -360,7 +363,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 }
 
                 str = tempCollection;
-                openedFileUri = fileUri;
+                openedFileUri = safeFileUri;
                 openedFile = null;
                 updateScreen();
                 enableInitiallyDisabledViews(true);
@@ -620,19 +623,27 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         writer.flush();
     }
 
-    private boolean isAcceptedSafUri(Uri fileUri) {
+    private Uri toAcceptedSafUri(Uri fileUri) {
         if (fileUri == null) {
-            return false;
+            return null;
         }
         String scheme = fileUri.getScheme();
         String authority = fileUri.getAuthority();
         if (!"content".equals(scheme) || !ANDROID_EXTERNAL_STORAGE_AUTHORITY.equals(authority)) {
-            return false;
+            return null;
         }
         if (!DocumentsContract.isDocumentUri(this, fileUri)) {
-            return false;
+            return null;
         }
-        String uri = fileUri.toString();
-        return uri.startsWith("content://com.android.externalstorage.documents/document/");
+        String documentId;
+        try {
+            documentId = DocumentsContract.getDocumentId(fileUri);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        if (documentId == null || documentId.length() == 0 || documentId.startsWith("/")) {
+            return null;
+        }
+        return DocumentsContract.buildDocumentUri(ANDROID_EXTERNAL_STORAGE_AUTHORITY, documentId);
     }
 }
