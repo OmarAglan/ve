@@ -41,6 +41,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     public final static int CHOOSE_FILE_REQUEST = 1;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
+    private boolean showedStorageLegacyNotice = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -300,9 +301,12 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     
     private boolean ensureStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            Toast.makeText(getApplicationContext(),
-                    getResources().getText(R.string.storage_legacy_mode_notice),
-                    Toast.LENGTH_LONG).show();
+            if (!showedStorageLegacyNotice) {
+                Toast.makeText(getApplicationContext(),
+                        getResources().getText(R.string.storage_legacy_mode_notice),
+                        Toast.LENGTH_LONG).show();
+                showedStorageLegacyNotice = true;
+            }
             return true;
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
