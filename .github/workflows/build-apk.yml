@@ -41,8 +41,8 @@ jobs:
         with:
           name: ve-debug-apk
           path: |
-            /home/runner/work/ve/ve/bin/ve-debug.apk
-            /home/runner/work/ve/ve/bin/ve-debug.apk.idsig
+            ${{ github.workspace }}/bin/ve-debug.apk
+            ${{ github.workspace }}/bin/ve-debug.apk.idsig
           if-no-files-found: error
 
       - name: Publish release asset on tag
@@ -50,4 +50,4 @@ jobs:
         uses: softprops/action-gh-release@v2.0.8
         with:
           files: |
-            /home/runner/work/ve/ve/bin/ve-debug.apk
+            ${{ github.workspace }}/bin/ve-debug.apk
