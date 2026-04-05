@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 import eu.pryds.ve.GotoStringNumberDialogFragment.GotoStringNumberDialogListener;
 
@@ -50,6 +51,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     public final static int CHOOSE_FILE_REQUEST = 1;
     public final static int CHOOSE_SAF_FILE_REQUEST = 3;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
+    private static final String ANDROID_EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents";
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
     private boolean hasShownStorageLegacyNotice = false;
     private Switch approvedSwitch;
@@ -309,6 +311,10 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         } else if (requestCode == CHOOSE_SAF_FILE_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
                 Uri fileUri = data.getData();
+                if (!isAcceptedSafUri(fileUri)) {
+                    showErrorMessage(R.string.file_unknownerror, null);
+                    return;
+                }
                 final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 try {
                     getContentResolver().takePersistableUriPermission(fileUri, flags);
@@ -319,12 +325,13 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 TranslatableStringCollection tempCollection = new TranslatableStringCollection();
                 int parseResult;
                 try {
-                    InputStream in = getContentResolver().openInputStream(fileUri);
+                    try (InputStream in = getContentResolver().openInputStream(fileUri)) {
                     if (in == null) {
                         showErrorMessage(R.string.file_ioerror, null);
                         return;
                     }
                     parseResult = tempCollection.parse(in, this);
+                    }
                 } catch (IOException e) {
                     showErrorMessage(R.string.file_ioerror, null);
                     return;
@@ -583,9 +590,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         }
 
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(openedFile));
-            writePoLines(writer, poLines);
-            writer.close();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(openedFile))) {
+                writePoLines(writer, poLines);
+            }
             return true;
         } catch (IOException e) {
             showErrorMessage(R.string.file_ioerror, openedFile.getName());
@@ -594,13 +601,14 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     }
 
     private void writePoLinesToUri(Uri uri, String[] poLines) throws IOException {
-        OutputStream out = getContentResolver().openOutputStream(uri, "wt");
-        if (out == null) {
-            throw new IOException("Could not open output stream");
+        try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+            if (out == null) {
+                throw new IOException("Could not open output stream");
+            }
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+                writePoLines(writer, poLines);
+            }
         }
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-        writePoLines(writer, poLines);
-        writer.close();
     }
 
     private void writePoLines(BufferedWriter writer, String[] poLines) throws IOException {
@@ -609,5 +617,14 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             writer.write('\n');
         }
         writer.flush();
+    }
+
+    private boolean isAcceptedSafUri(Uri fileUri) {
+        if (fileUri == null) {
+            return false;
+        }
+        String scheme = fileUri.getScheme();
+        String authority = fileUri.getAuthority();
+        return "content".equals(scheme) && ANDROID_EXTERNAL_STORAGE_AUTHORITY.equals(authority);
     }
 }

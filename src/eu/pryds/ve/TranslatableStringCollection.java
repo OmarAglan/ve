@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -97,7 +98,7 @@ public class TranslatableStringCollection implements Parcelable {
 
     public int parse(InputStream poInputStream, Activity activity) {
         try {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(poInputStream, "UTF-8"))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(poInputStream, StandardCharsets.UTF_8))) {
                 return parse(reader, activity);
             }
         } catch (IOException e) {

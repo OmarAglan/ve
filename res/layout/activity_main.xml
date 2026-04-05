@@ -27,7 +27,6 @@
         android:showText="true"
         android:textOn="@string/ready"
         android:textOff="@string/unfinished"
-        android:text=""
         android:enabled="false" />
 
     <LinearLayout
@@ -117,7 +116,6 @@
         android:layout_marginBottom="@dimen/content_spacing_small"
         android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
-        android:text=""
         android:textColor="@color/text_primary"
         android:lineSpacingExtra="2dp"
         android:textSize="16sp" />
