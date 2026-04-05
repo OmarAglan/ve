@@ -6,9 +6,9 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     
+    <!-- Keep targetSdk 28 temporarily to preserve legacy external-storage file flows during migration. -->
     <uses-sdk
         android:minSdkVersion="14"
-        <!-- Keep targetSdk 28 temporarily to preserve legacy external-storage file flows during migration. -->
         android:targetSdkVersion="28" />
 
     <application
