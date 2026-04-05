@@ -221,6 +221,8 @@
     <target name="debug" depends="package-apk,debug-keystore" description="Build a fully signed debug APK.">
         <exec executable="${apksigner}" failonerror="true">
             <arg value="sign"/>
+            <arg value="--v4-signing-enabled"/>
+            <arg value="false"/>
             <arg value="--ks"/>
             <arg value="${debug.keystore.path}"/>
             <arg value="--ks-key-alias"/>

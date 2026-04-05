@@ -82,6 +82,11 @@ This repository now includes GitHub Actions workflow:
 * Download the APK from workflow artifacts named **ve-debug-apk**.
 * If you push a tag like `v0.1.5`, the workflow also uploads `ve-debug.apk` as a release asset.
 
+Install notes for debug APKs
+----------------------------
+
+If Android shows **“invalid package”** while installing a debug APK over an existing install, uninstall the currently installed Vé app first and then install the new APK. This typically happens when signatures differ between old and new builds.
+
 Contributing to Vé
 ------------------
 

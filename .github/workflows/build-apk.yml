@@ -40,9 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4.3.3
         with:
           name: ve-debug-apk
-          path: |
-            ${{ github.workspace }}/bin/ve-debug.apk
-            ${{ github.workspace }}/bin/ve-debug.apk.idsig
+          path: ${{ github.workspace }}/bin/ve-debug.apk
           if-no-files-found: error
 
       - name: Publish release asset on tag

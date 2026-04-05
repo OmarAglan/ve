@@ -13,6 +13,7 @@
         android:id="@+id/approved"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
         android:textOn="@string/ready"
         android:textOff="@string/unfinished"
         android:text="@string/approved"
@@ -21,6 +22,7 @@
     <LinearLayout 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
         android:orientation="horizontal" >
         
         <Button
@@ -81,41 +83,53 @@
     
     <View
         android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"/>
+        android:layout_height="@dimen/divider_height"
+        android:background="#33000000"/>
     
     <TextView
         android:id="@+id/orig_str"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
-        android:maxHeight="300dp"
+        android:layout_marginTop="@dimen/content_spacing_small"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
         android:text="@string/orig_str"
-        android:textSize="14sp" />
+        android:textColor="#212121"
+        android:lineSpacingExtra="2dp"
+        android:textSize="16sp" />
     
     <View
         android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"/>
+        android:layout_height="@dimen/divider_height"
+        android:background="#33000000"/>
     
     <EditText
         android:id="@+id/transl_str"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="@dimen/content_spacing_small"
+        android:layout_marginBottom="@dimen/content_spacing_medium"
+        android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
         android:gravity="top"
         android:hint="@string/transl_str"
         android:enabled="false"
-        android:textSize="14sp" />
+        android:background="#FFFFFFFF"
+        android:padding="@dimen/content_spacing_small"
+        android:lineSpacingExtra="2dp"
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/metadata"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/content_spacing_small"
         android:lines="3"
         android:text="@string/meta_str_no"
+        android:textColor="#616161"
         android:textSize="12sp" />
     
 </LinearLayout>

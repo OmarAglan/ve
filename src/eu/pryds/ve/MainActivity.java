@@ -11,9 +11,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -36,6 +39,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private Menu menu;
     private File openedFile;
     public final static int CHOOSE_FILE_REQUEST = 1;
+    private static final int STORAGE_PERMISSION_REQUEST = 2;
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
     
     @Override
@@ -43,6 +47,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        ensureStoragePermission();
         
         Switch approved = (Switch) findViewById(R.id.approved);
         approved.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -157,6 +162,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             return true;*/
         case R.id.action_load:
             str = new TranslatableStringCollection();
+            if (!ensureStoragePermission()) {
+                return true;
+            }
             
             Intent loadIntent = new Intent(this, FileChooser.class);
             startActivityForResult(loadIntent, CHOOSE_FILE_REQUEST);
@@ -276,6 +284,29 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 enableInitiallyDisabledViews(true);
             }
         }
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_REQUEST) {
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(getApplicationContext(),
+                        getResources().getText(R.string.storage_permission_required),
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    
+    private boolean ensureStoragePermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        requestPermissions(new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
+        return false;
     }
     
     @Override
