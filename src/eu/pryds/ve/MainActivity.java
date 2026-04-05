@@ -4,6 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 import eu.pryds.ve.GotoStringNumberDialogFragment.GotoStringNumberDialogListener;
 
@@ -16,6 +19,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,7 +46,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private int currentPluralForm = 0;
     private Menu menu;
     private File openedFile;
+    private Uri openedFileUri;
     public final static int CHOOSE_FILE_REQUEST = 1;
+    public final static int CHOOSE_SAF_FILE_REQUEST = 3;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
     private boolean hasShownStorageLegacyNotice = false;
@@ -114,6 +120,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         savedInstanceState.putParcelable("str", str);
         savedInstanceState.putInt("currentString", currentString);
         savedInstanceState.putInt("currentPluralForm", currentPluralForm);
+        if (openedFileUri != null) {
+            savedInstanceState.putString("openedFileUri", openedFileUri.toString());
+        }
         
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -125,6 +134,10 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             str = (TranslatableStringCollection) savedInstanceState.getParcelable("str");
             currentString = savedInstanceState.getInt("currentString");
             currentPluralForm = savedInstanceState.getInt("currentPluralForm");
+            String openedFileUriString = savedInstanceState.getString("openedFileUri");
+            if (openedFileUriString != null) {
+                openedFileUri = Uri.parse(openedFileUriString);
+            }
             
             updateScreen();
         }
@@ -185,13 +198,19 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             return true;*/
         case R.id.action_load:
             str = new TranslatableStringCollection();
-            if (!ensureStoragePermission()) {
-                return true;
+            if (shouldUseSafFileFlow()) {
+                Intent safLoadIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                safLoadIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                safLoadIntent.setType("*/*");
+                startActivityForResult(safLoadIntent, CHOOSE_SAF_FILE_REQUEST);
+            } else {
+                if (!ensureStoragePermission()) {
+                    return true;
+                }
+                
+                Intent loadIntent = new Intent(this, FileChooser.class);
+                startActivityForResult(loadIntent, CHOOSE_FILE_REQUEST);
             }
-            
-            Intent loadIntent = new Intent(this, FileChooser.class);
-            startActivityForResult(loadIntent, CHOOSE_FILE_REQUEST);
-            
             return true;
         case R.id.action_save:
             SharedPreferences pref =
@@ -210,28 +229,8 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             
             // Generate PO file syntax:
             String[] poLines = str.toPoFile(this); // TODO: In separate thread(?)
-            
-            if (!openedFile.exists()) {
-                showErrorMessage(R.string.file_filenotexist, openedFile.getName());
-                return true;
-            }
-            if (!openedFile.canWrite()) {
-                showErrorMessage(R.string.file_cannotwritefile, openedFile.getName());
-                return true;
-            }
-            
-            try {
-                // Write PO lines to file:
-                BufferedWriter writer = new BufferedWriter(new FileWriter(openedFile));
-                
-                for (int i = 0; i < poLines.length; i++) {
-                    writer.write(poLines[i]);
-                    writer.write('\n');
-                }
-                writer.flush();
-                writer.close();
-            } catch (IOException e) {
-                showErrorMessage(R.string.file_ioerror, openedFile.getName());
+
+            if (!saveToCurrentLocation(poLines)) {
                 return true;
             }
             Toast.makeText(getApplicationContext(),
@@ -302,7 +301,59 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 
                 str = tempCollection;
                 openedFile = file;
+                openedFileUri = null;
                 
+                updateScreen();
+                enableInitiallyDisabledViews(true);
+            }
+        } else if (requestCode == CHOOSE_SAF_FILE_REQUEST) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                Uri fileUri = data.getData();
+                final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                try {
+                    getContentResolver().takePersistableUriPermission(fileUri, flags);
+                } catch (SecurityException e) {
+                    // Continue; temporary grant from chooser can still be sufficient for this session.
+                }
+
+                TranslatableStringCollection tempCollection = new TranslatableStringCollection();
+                int parseResult;
+                try {
+                    InputStream in = getContentResolver().openInputStream(fileUri);
+                    if (in == null) {
+                        showErrorMessage(R.string.file_ioerror, null);
+                        return;
+                    }
+                    parseResult = tempCollection.parse(in, this);
+                } catch (IOException e) {
+                    showErrorMessage(R.string.file_ioerror, null);
+                    return;
+                }
+
+                if (parseResult != TranslatableStringCollection.ERROR_NONE) {
+                    switch (parseResult) {
+                    case TranslatableStringCollection.ERROR_NOT_PO_FILE:
+                        showErrorMessage(R.string.file_notpofile, null);
+                        break;
+                    case TranslatableStringCollection.ERROR_FILE_EMPTY:
+                        showErrorMessage(R.string.file_fileempty, null);
+                        break;
+                    case TranslatableStringCollection.ERROR_FILE_NOT_FOUND:
+                        showErrorMessage(R.string.file_filenotexist, null);
+                        break;
+                    case TranslatableStringCollection.ERROR_IO:
+                        showErrorMessage(R.string.file_ioerror, null);
+                        break;
+                    default:
+                        showErrorMessage(R.string.file_unknownerror, null);
+                        break;
+                    }
+                    return;
+                }
+
+                str = tempCollection;
+                openedFileUri = fileUri;
+                openedFile = null;
                 updateScreen();
                 enableInitiallyDisabledViews(true);
             }
@@ -501,5 +552,62 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private void openSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
+    }
+
+    private boolean shouldUseSafFileFlow() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    }
+
+    private boolean saveToCurrentLocation(String[] poLines) {
+        if (openedFileUri != null) {
+            try {
+                writePoLinesToUri(openedFileUri, poLines);
+                return true;
+            } catch (IOException e) {
+                showErrorMessage(R.string.file_ioerror, null);
+                return false;
+            }
+        }
+
+        if (openedFile == null) {
+            showErrorMessage(R.string.file_unknownerror, null);
+            return false;
+        }
+        if (!openedFile.exists()) {
+            showErrorMessage(R.string.file_filenotexist, openedFile.getName());
+            return false;
+        }
+        if (!openedFile.canWrite()) {
+            showErrorMessage(R.string.file_cannotwritefile, openedFile.getName());
+            return false;
+        }
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(openedFile));
+            writePoLines(writer, poLines);
+            writer.close();
+            return true;
+        } catch (IOException e) {
+            showErrorMessage(R.string.file_ioerror, openedFile.getName());
+            return false;
+        }
+    }
+
+    private void writePoLinesToUri(Uri uri, String[] poLines) throws IOException {
+        OutputStream out = getContentResolver().openOutputStream(uri, "wt");
+        if (out == null) {
+            throw new IOException("Could not open output stream");
+        }
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+        writePoLines(writer, poLines);
+        writer.close();
+    }
+
+    private void writePoLines(BufferedWriter writer, String[] poLines) throws IOException {
+        for (int i = 0; i < poLines.length; i++) {
+            writer.write(poLines[i]);
+            writer.write('\n');
+        }
+        writer.flush();
     }
 }

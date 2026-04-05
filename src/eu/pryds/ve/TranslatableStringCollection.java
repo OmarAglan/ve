@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -82,20 +84,34 @@ public class TranslatableStringCollection implements Parcelable {
     }
     
     public int parse(File poFile, Activity activity) {
-        Vector<String> poFileLines = new Vector<String>();
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader(poFile))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    poFileLines.add(line);
-                }
+                return parse(reader, activity);
             }
         } catch (FileNotFoundException e) {
             return ERROR_FILE_NOT_FOUND;
         } catch (IOException e) {
             return ERROR_IO;
         }
-        
+    }
+
+    public int parse(InputStream poInputStream, Activity activity) {
+        try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(poInputStream, "UTF-8"))) {
+                return parse(reader, activity);
+            }
+        } catch (IOException e) {
+            return ERROR_IO;
+        }
+    }
+
+    private int parse(BufferedReader reader, Activity activity) throws IOException {
+        Vector<String> poFileLines = new Vector<String>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            poFileLines.add(line);
+        }
+
         if (poFileLines.size() == 0)
             return ERROR_FILE_EMPTY;
         if (!poFileLines.get(0).startsWith("#"))
