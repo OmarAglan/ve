@@ -81,13 +81,12 @@ public class TranslatableStringCollection implements Parcelable {
     public int parse(File poFile, Activity activity) {
         Vector<String> poFileLines = new Vector<String>();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(poFile));
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                poFileLines.add(line);
+            try (BufferedReader reader = new BufferedReader(new FileReader(poFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    poFileLines.add(line);
+                }
             }
-            reader.close();
         } catch (FileNotFoundException e) {
             return ERROR_FILE_NOT_FOUND;
         } catch (IOException e) {
