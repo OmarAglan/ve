@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.DocumentsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -625,6 +626,13 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         }
         String scheme = fileUri.getScheme();
         String authority = fileUri.getAuthority();
-        return "content".equals(scheme) && ANDROID_EXTERNAL_STORAGE_AUTHORITY.equals(authority);
+        if (!"content".equals(scheme) || !ANDROID_EXTERNAL_STORAGE_AUTHORITY.equals(authority)) {
+            return false;
+        }
+        if (!DocumentsContract.isDocumentUri(this, fileUri)) {
+            return false;
+        }
+        String uri = fileUri.toString();
+        return uri.startsWith("content://com.android.externalstorage.documents/document/");
     }
 }
