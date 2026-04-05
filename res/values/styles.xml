@@ -15,8 +15,8 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-        <item name="android:windowBackground">#FAFAFA</item>
-        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:windowBackground">@color/background_surface</item>
+        <item name="android:colorBackground">@color/background_surface</item>
     </style>
 
 </resources>

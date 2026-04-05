@@ -66,6 +66,7 @@ This repository now includes an Ant build pipeline at `build.xml` that can produ
 2. Ensure your SDK contains:
    * `platforms/android-34` (or override with `-Dsdk.api.level=...`)
    * `build-tools/34.0.0` (or override with `-Dbuild.tools.version=...`)
+   * Note: app `targetSdkVersion` is currently set to 28 to keep legacy external-storage file flows working during incremental modernization.
 3. Run:
    * `ant -p` to list available targets
    * `ant check-sdk` to validate SDK/tooling wiring

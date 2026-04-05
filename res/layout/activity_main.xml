@@ -84,7 +84,7 @@
     <View
         android:layout_width="fill_parent"
         android:layout_height="@dimen/divider_height"
-        android:background="#33000000"/>
+        android:background="@color/divider_subtle"/>
     
     <TextView
         android:id="@+id/orig_str"
@@ -96,14 +96,14 @@
         android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
         android:text="@string/orig_str"
-        android:textColor="#212121"
+        android:textColor="@color/text_primary"
         android:lineSpacingExtra="2dp"
         android:textSize="16sp" />
     
     <View
         android:layout_width="fill_parent"
         android:layout_height="@dimen/divider_height"
-        android:background="#33000000"/>
+        android:background="@color/divider_subtle"/>
     
     <EditText
         android:id="@+id/transl_str"
@@ -117,7 +117,7 @@
         android:gravity="top"
         android:hint="@string/transl_str"
         android:enabled="false"
-        android:background="#FFFFFFFF"
+        android:background="@color/editor_background"
         android:padding="@dimen/content_spacing_small"
         android:lineSpacingExtra="2dp"
         android:textSize="16sp" />
@@ -129,7 +129,7 @@
         android:layout_marginTop="@dimen/content_spacing_small"
         android:lines="3"
         android:text="@string/meta_str_no"
-        android:textColor="#616161"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp" />
     
 </LinearLayout>

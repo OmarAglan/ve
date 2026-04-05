@@ -221,6 +221,7 @@
     <target name="debug" depends="package-apk,debug-keystore" description="Build a fully signed debug APK.">
         <exec executable="${apksigner}" failonerror="true">
             <arg value="sign"/>
+            <!-- Disable v4 sidecar output so test installs only require the APK file itself. -->
             <arg value="--v4-signing-enabled"/>
             <arg value="false"/>
             <arg value="--ks"/>
