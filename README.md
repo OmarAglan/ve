@@ -27,11 +27,11 @@ At a high level, the app is made of:
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase currently targets Android API level 18 (`targetSdkVersion="18"` in `AndroidManifest.xml`) and predates modern Android build/tooling. A practical upgrade path is:
+This codebase now builds with Gradle and currently targets Android API level 28 (`targetSdkVersion="28"` in `AndroidManifest.xml`). A practical next upgrade path is:
 
-1. **Migrate to Gradle + Android Gradle Plugin**
-    * Replace Eclipse/Ant project files (`.classpath`, `project.properties`) with `build.gradle` and Gradle wrapper.
-    * Move to the latest stable `compileSdkVersion`/`targetSdkVersion` and a realistic `minSdk` baseline (for example API 21+).
+1. **Finalize modern Android baseline**
+    * Keep moving to newer `compileSdkVersion`/`targetSdkVersion` while preserving file workflow behavior.
+    * Revisit `minSdk` baseline once compatibility goals are agreed.
 2. **Migrate support libraries to AndroidX**
    * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
 3. **Update deprecated Activity/Fragment patterns**
@@ -54,25 +54,24 @@ For the highest long-term quality and maintainability:
 * Add static quality gates (Android Lint, CI workflow, formatting/lint checks).
 * Audit and remove dead/disabled features or fully modernize them (for example old billing/backup paths).
 
-Build/testing quick start (Gradle-first + Ant fallback)
--------------------------------------------------------
+Build/testing quick start (Gradle)
+----------------------------------
 
-This repository now includes an initial Gradle migration (`gradlew`, root `build.gradle`, `app/build.gradle`) while keeping the Ant build (`build.xml`) as fallback.
+This repository now uses Gradle (`gradlew`, root `build.gradle`, `app/build.gradle`) as the build system.
 
 1. Configure an Android SDK path using one of:
    * `local.properties` with `sdk.dir=/absolute/path/to/android-sdk`
    * `ANDROID_HOME`
    * `ANDROID_SDK_ROOT`
 2. Ensure your SDK contains:
-   * `platforms/android-34` (or override with `-Dsdk.api.level=...`)
-   * `build-tools/34.0.0` (or override with `-Dbuild.tools.version=...`)
+   * `platforms;android-34`
+   * `build-tools;34.0.0`
    * Note: app `targetSdkVersion` is currently set to 28 (not 29+) to keep legacy external-storage file flows working during incremental modernization.
    * Note: on Android 10+ devices, legacy external-storage browsing can still be constrained; migrating file access to SAF is a planned next step.
 3. Run:
-   * `./gradlew :app:assembleDebug` to build a debug APK (preferred)
+   * `./gradlew :app:assembleDebug` to build a debug APK
    * Output APK path: `app/build/outputs/apk/debug/app-debug.apk`
    * Debug package name is `eu.pryds.ve.debug` (via `applicationIdSuffix ".debug"`), so it can install alongside release builds and avoid update/signature conflicts.
-   * Ant fallback (if Gradle dependency resolution is unavailable): `ant ci-debug` (outputs `bin/ve-debug.apk`)
 
 APK exposure for testing (artifact/release)
 -------------------------------------------
