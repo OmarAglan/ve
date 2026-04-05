@@ -116,9 +116,12 @@
 
     <target name="generate-aidl" depends="prepare">
         <exec executable="${aidl}" failonerror="true">
-            <arg value="-p${framework.aidl}"/>
-            <arg value="-I${src.dir}"/>
-            <arg value="-o${gen.dir}"/>
+            <arg value="-p"/>
+            <arg value="${framework.aidl}"/>
+            <arg value="-I"/>
+            <arg value="${src.dir}"/>
+            <arg value="-o"/>
+            <arg value="${gen.dir}"/>
             <arg value="${src.dir}/com/android/vending/billing/IInAppBillingService.aidl"/>
         </exec>
     </target>
@@ -128,8 +131,8 @@
             srcdir="${src.dir}:${gen.dir}"
             destdir="${obj.classes.dir}"
             includeantruntime="false"
-            source="1.7"
-            target="1.7"
+            source="1.8"
+            target="1.8"
             encoding="UTF-8">
             <classpath refid="project.classpath"/>
         </javac>

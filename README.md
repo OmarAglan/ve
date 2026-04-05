@@ -31,7 +31,7 @@ This codebase currently targets Android API level 18 (`targetSdkVersion="18"` in
 
 1. **Migrate to Gradle + Android Gradle Plugin**
     * Replace Eclipse/Ant project files (`.classpath`, `project.properties`) with `build.gradle` and Gradle wrapper.
-    * Move to the latest stable `compileSdk`/`targetSdk` and a realistic `minSdk` baseline (for example API 21+).
+    * Move to the latest stable `compileSdkVersion`/`targetSdkVersion` and a realistic `minSdk` baseline (for example API 21+).
 2. **Migrate support libraries to AndroidX**
    * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
 3. **Update deprecated Activity/Fragment patterns**
@@ -47,7 +47,7 @@ How to improve the codebase
 
 For the highest long-term quality and maintainability:
 
-* Add automated builds/tests (unit tests for PO parser and serialization, plus instrumentation tests for file open/save flows).
+* Add automated testing (unit tests for PO parser and serialization, plus instrumentation tests for file open/save flows).
 * Move parsing/saving work off the main thread to avoid UI jank on large files.
 * Introduce architecture boundaries (for example ViewModel + repository-style separation) to reduce Activity complexity.
 * Replace legacy collections/utilities where practical with modern Java/Kotlin equivalents.
