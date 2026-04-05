@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements GotoStringNumberDialogListener {
     
+    private static final String PREF_STORAGE_NOTICE_SHOWN = "pref_storage_notice_shown";
     private TranslatableStringCollection str;
     private int currentString = 0;
     private int currentPluralForm = 0;
@@ -41,13 +42,15 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     public final static int CHOOSE_FILE_REQUEST = 1;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
-    private boolean showedStorageLegacyNotice = false;
+    private boolean hasShownStorageLegacyNotice = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        hasShownStorageLegacyNotice = pref.getBoolean(PREF_STORAGE_NOTICE_SHOWN, false);
         ensureStoragePermission();
         
         Switch approved = (Switch) findViewById(R.id.approved);
@@ -301,11 +304,13 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     
     private boolean ensureStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!showedStorageLegacyNotice) {
+            if (!hasShownStorageLegacyNotice) {
                 Toast.makeText(getApplicationContext(),
                         getResources().getText(R.string.storage_legacy_mode_notice),
                         Toast.LENGTH_LONG).show();
-                showedStorageLegacyNotice = true;
+                hasShownStorageLegacyNotice = true;
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+                pref.edit().putBoolean(PREF_STORAGE_NOTICE_SHOWN, true).apply();
             }
             return true;
         }

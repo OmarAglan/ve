@@ -4,6 +4,9 @@ gen/
 obj/
 .project
 .settings/
+.gradle/
+app/build/
+build/
 
 res/values-*/strings.xml
 

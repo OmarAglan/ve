@@ -54,10 +54,10 @@ For the highest long-term quality and maintainability:
 * Add static quality gates (Android Lint, CI workflow, formatting/lint checks).
 * Audit and remove dead/disabled features or fully modernize them (for example old billing/backup paths).
 
-Legacy build/testing quick start (current state)
-------------------------------------------------
+Build/testing quick start (Gradle-first + Ant fallback)
+-------------------------------------------------------
 
-This repository now includes an Ant build pipeline at `build.xml` that can produce a full debug APK using the installed Android command-line toolchain.
+This repository now includes an initial Gradle migration (`gradlew`, root `build.gradle`, `app/build.gradle`) while keeping the Ant build (`build.xml`) as fallback.
 
 1. Configure an Android SDK path using one of:
    * `local.properties` with `sdk.dir=/absolute/path/to/android-sdk`
@@ -69,10 +69,10 @@ This repository now includes an Ant build pipeline at `build.xml` that can produ
    * Note: app `targetSdkVersion` is currently set to 28 (not 29+) to keep legacy external-storage file flows working during incremental modernization.
    * Note: on Android 10+ devices, legacy external-storage browsing can still be constrained; migrating file access to SAF is a planned next step.
 3. Run:
-   * `ant -p` to list available targets
-   * `ant check-sdk` to validate SDK/tooling wiring
-   * `ant debug` to build a full debug APK at `bin/ve-debug.apk`
-   * `ant ci-debug` to run the clean CI-style full debug build
+   * `./gradlew :app:assembleDebug` to build a debug APK (preferred)
+   * Output APK path: `app/build/outputs/apk/debug/app-debug.apk`
+   * Debug package name is `eu.pryds.ve.debug` (via `applicationIdSuffix ".debug"`), so it can install alongside release builds and avoid update/signature conflicts.
+   * Ant fallback (if Gradle dependency resolution is unavailable): `ant ci-debug` (outputs `bin/ve-debug.apk`)
 
 APK exposure for testing (artifact/release)
 -------------------------------------------
@@ -87,7 +87,7 @@ This repository now includes GitHub Actions workflow:
 Install notes for debug APKs
 ----------------------------
 
-If Android shows **“invalid package”** while installing a debug APK over an existing install, uninstall the currently installed Vé app first and then install the new APK. This typically happens when signatures differ between old and new builds.
+If Android shows **“invalid package”** while installing a debug APK over an existing install, uninstall the previously installed app variant first and then install the new APK. This typically happens when signatures differ between old and new builds, or when installing a build with a different applicationId/package variant.
 
 Contributing to Vé
 ------------------
