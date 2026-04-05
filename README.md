@@ -57,17 +57,19 @@ For the highest long-term quality and maintainability:
 Legacy build/testing quick start (current state)
 ------------------------------------------------
 
-This repository now includes a minimal Ant entrypoint at `build.xml` so targets can be discovered and validated incrementally.
+This repository now includes an Ant build pipeline at `build.xml` that can produce a full debug APK using the installed Android command-line toolchain.
 
 1. Configure an Android SDK path using one of:
    * `local.properties` with `sdk.dir=/absolute/path/to/android-sdk`
    * `ANDROID_HOME`
    * `ANDROID_SDK_ROOT`
-2. Ensure the SDK includes legacy Ant scripts at `tools/ant/build.xml`.
+2. Ensure your SDK contains:
+   * `platforms/android-34` (or override with `-Dsdk.api.level=...`)
+   * `build-tools/34.0.0` (or override with `-Dbuild.tools.version=...`)
 3. Run:
    * `ant -p` to list available targets
-   * `ant check-sdk` to validate SDK/Ant wiring
-   * `ant debug` to attempt a debug build (when full legacy toolchain is installed)
+   * `ant check-sdk` to validate SDK/tooling wiring
+   * `ant debug` to build a full debug APK at `bin/ve-debug.apk`
 
 Contributing to Vé
 ------------------
