@@ -51,8 +51,6 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         hasShownStorageLegacyNotice = pref.getBoolean(PREF_STORAGE_NOTICE_SHOWN, false);
-        ensureStoragePermission();
-        
         Switch approved = (Switch) findViewById(R.id.approved);
         approved.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -294,7 +292,16 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_REQUEST) {
-            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            boolean readGranted = false;
+            boolean writeGranted = false;
+            for (int i = 0; i < permissions.length && i < grantResults.length; i++) {
+                if (Manifest.permission.READ_EXTERNAL_STORAGE.equals(permissions[i])) {
+                    readGranted = grantResults[i] == PackageManager.PERMISSION_GRANTED;
+                } else if (Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permissions[i])) {
+                    writeGranted = grantResults[i] == PackageManager.PERMISSION_GRANTED;
+                }
+            }
+            if (!(readGranted && writeGranted)) {
                 Toast.makeText(getApplicationContext(),
                         getResources().getText(R.string.storage_permission_required),
                         Toast.LENGTH_LONG).show();

@@ -8,6 +8,7 @@
     
     <uses-sdk
         android:minSdkVersion="14"
+        <!-- Keep targetSdk 28 temporarily to preserve legacy external-storage file flows during migration. -->
         android:targetSdkVersion="28" />
 
     <application
