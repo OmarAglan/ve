@@ -239,4 +239,6 @@
         </exec>
         <echo>Built debug APK: ${debug.apk}</echo>
     </target>
+
+    <target name="ci-debug" depends="clean,debug" description="Clean and build a full debug APK for CI runs."/>
 </project>

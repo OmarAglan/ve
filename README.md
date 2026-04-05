@@ -70,6 +70,17 @@ This repository now includes an Ant build pipeline at `build.xml` that can produ
    * `ant -p` to list available targets
    * `ant check-sdk` to validate SDK/tooling wiring
    * `ant debug` to build a full debug APK at `bin/ve-debug.apk`
+   * `ant ci-debug` to run the clean CI-style full debug build
+
+APK exposure for testing (artifact/release)
+-------------------------------------------
+
+This repository now includes GitHub Actions workflow:
+
+* Workflow file: `.github/workflows/build-apk.yml`
+* Trigger manually from **Actions → build-apk → Run workflow**, or via pull requests/pushes.
+* Download the APK from workflow artifacts named **ve-debug-apk**.
+* If you push a tag like `v0.1.5`, the workflow also uploads `ve-debug.apk` as a release asset.
 
 Contributing to Vé
 ------------------
