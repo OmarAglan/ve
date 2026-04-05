@@ -13,6 +13,47 @@ Vé is named after one of [Odin's two brothers](http://en.wikipedia.org/wiki/Vil
 
 Vé is open source software, released under the GPL licence, which means you can use it for free, for personal or other purposes. You can even redistribute it, modified or not, provided you do so under the same licence, which means you have to provide your source files for any changes. You can read the [full licence text here](https://github.com/pryds/ve/blob/master/COPYING).
 
+Project structure
+-----------------
+
+At a high level, the app is made of:
+
+* `MainActivity`: the main translation editor screen.
+* `TranslatableString` and `TranslatableStringCollection`: PO parsing/writing model layer.
+* `FileChooser`: local file picker.
+* `SettingsActivity`/`SettingsFragment`: translator metadata preferences.
+* `res/`: layouts, strings, menus and drawables.
+
+How to modernize Vé for newer Android versions
+----------------------------------------------
+
+This codebase targets a very old Android API level and predates modern Android build/tooling. A practical upgrade path is:
+
+1. **Migrate to Gradle + Android Gradle Plugin**
+   * Replace Eclipse/Ant project files (`.classpath`, `project.properties`) with `build.gradle` and Gradle wrapper.
+   * Move to current `compileSdk`/`targetSdk` (for example API 34+) and a realistic `minSdk` baseline (for example API 21+).
+2. **Migrate support libraries to AndroidX**
+   * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
+3. **Update deprecated Activity/Fragment patterns**
+   * Replace `startActivityForResult`/`onActivityResult` with Activity Result APIs.
+   * Replace legacy preference APIs with `androidx.preference`.
+4. **Modernize storage/file access**
+   * Replace direct legacy external storage assumptions with modern storage access patterns (SAF/scoped storage friendly flows).
+5. **Run compatibility validation**
+   * Test on recent Android versions/emulators (Android 12, 13, 14+) and verify open/edit/save PO flows.
+
+How to improve the codebase
+---------------------------
+
+For the highest long-term quality and maintainability:
+
+* Add automated builds/tests (unit tests for PO parser and serialization, plus instrumentation tests for file open/save flows).
+* Move parsing/saving work off the main thread to avoid UI jank on large files.
+* Introduce architecture boundaries (for example ViewModel + repository-style separation) to reduce Activity complexity.
+* Replace legacy collections/utilities where practical with modern Java/Kotlin equivalents.
+* Add static quality gates (Android Lint, CI workflow, formatting/lint checks).
+* Audit and remove dead/disabled features or fully modernize them (for example old billing/backup paths).
+
 Contributing to Vé
 ------------------
 
@@ -24,4 +65,3 @@ or [poedit](http://sourceforge.net/projects/poedit/) on desktop computers. When 
 Donations of any amount that you see fit are kindly accepted through Bitcoin address 12FPDWwNYyn6wRfybncM5VcJpM4ZP6QNnM. At some point in the future, in-app donations through Google Play will be possible.
 
 ![Donate Bitcoins](https://raw.github.com/pryds/ve/master/various/ve-donations-qr.png)
-
