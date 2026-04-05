@@ -54,6 +54,21 @@ For the highest long-term quality and maintainability:
 * Add static quality gates (Android Lint, CI workflow, formatting/lint checks).
 * Audit and remove dead/disabled features or fully modernize them (for example old billing/backup paths).
 
+Legacy build/testing quick start (current state)
+------------------------------------------------
+
+This repository now includes a minimal Ant entrypoint at `build.xml` so targets can be discovered and validated incrementally.
+
+1. Configure an Android SDK path using one of:
+   * `local.properties` with `sdk.dir=/absolute/path/to/android-sdk`
+   * `ANDROID_HOME`
+   * `ANDROID_SDK_ROOT`
+2. Ensure the SDK includes legacy Ant scripts at `tools/ant/build.xml`.
+3. Run:
+   * `ant -p` to list available targets
+   * `ant check-sdk` to validate SDK/Ant wiring
+   * `ant debug` to attempt a debug build (when full legacy toolchain is installed)
+
 Contributing to Vé
 ------------------
 

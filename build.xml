@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ve" default="help">
+    <property file="local.properties"/>
+    <property file="ant.properties"/>
+    <property file="project.properties"/>
+    <property environment="env"/>
+
+    <condition property="sdk.dir" value="${env.ANDROID_HOME}">
+        <and>
+            <not>
+                <isset property="sdk.dir"/>
+            </not>
+            <isset property="env.ANDROID_HOME"/>
+        </and>
+    </condition>
+
+    <condition property="sdk.dir" value="${env.ANDROID_SDK_ROOT}">
+        <and>
+            <not>
+                <isset property="sdk.dir"/>
+            </not>
+            <isset property="env.ANDROID_SDK_ROOT"/>
+        </and>
+    </condition>
+
+    <available
+        file="${sdk.dir}/tools/ant/build.xml"
+        property="android.ant.build.file"
+        value="${sdk.dir}/tools/ant/build.xml"/>
+
+    <import file="${android.ant.build.file}" optional="true"/>
+
+    <target name="help" description="Print build guidance for this legacy Android Ant project.">
+        <echo>Vé legacy Android build (Ant) entrypoint.</echo>
+        <echo>1) Set sdk.dir in local.properties OR export ANDROID_HOME / ANDROID_SDK_ROOT.</echo>
+        <echo>2) Ensure your SDK includes tools/ant/build.xml.</echo>
+        <echo>3) Run `ant -p` to list available targets and `ant debug` to build.</echo>
+    </target>
+
+    <target name="check-sdk" description="Validate that Android Ant build scripts are available.">
+        <fail unless="android.ant.build.file">
+            Android Ant build scripts were not found. Configure sdk.dir (or ANDROID_HOME / ANDROID_SDK_ROOT)
+            to an SDK that contains tools/ant/build.xml.
+        </fail>
+        <echo>Using Android Ant build file: ${android.ant.build.file}</echo>
+    </target>
+</project>
