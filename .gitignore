@@ -1,10 +1,10 @@
 *~
 bin/
 gen/
+obj/
 .project
 .settings/
 
 res/values-*/strings.xml
 
 various/play-featured-graphics.png
-

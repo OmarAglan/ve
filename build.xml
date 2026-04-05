@@ -135,16 +135,25 @@
         </javac>
     </target>
 
-    <target name="dex" depends="compile">
+    <target name="jar-classes" depends="compile">
+        <jar destfile="${obj.dir}/classes.jar" basedir="${obj.classes.dir}"/>
+    </target>
+
+    <path id="dex.program.libs">
+        <fileset dir="${libs.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+    <pathconvert property="dex.program.libs.args" refid="dex.program.libs" pathsep=" "/>
+
+    <target name="dex" depends="jar-classes">
         <exec executable="${d8}" failonerror="true">
             <arg value="--lib"/>
             <arg value="${android.jar}"/>
             <arg value="--output"/>
             <arg value="${obj.dex.dir}"/>
-            <arg value="${obj.classes.dir}"/>
-            <fileset dir="${libs.dir}">
-                <include name="*.jar"/>
-            </fileset>
+            <arg value="${obj.dir}/classes.jar"/>
+            <arg line="${dex.program.libs.args}"/>
         </exec>
     </target>
 
@@ -177,10 +186,13 @@
         </exec>
     </target>
 
-    <target name="debug-keystore" depends="prepare">
+    <target name="debug-keystore-check" depends="prepare">
         <mkdir dir="${user.home}/.android"/>
         <available file="${debug.keystore.path}" property="has.debug.keystore"/>
-        <exec executable="keytool" failonerror="true" unless="has.debug.keystore">
+    </target>
+
+    <target name="debug-keystore-create" depends="debug-keystore-check" unless="has.debug.keystore">
+        <exec executable="keytool" failonerror="true">
             <arg value="-genkeypair"/>
             <arg value="-keystore"/>
             <arg value="${debug.keystore.path}"/>
@@ -200,6 +212,8 @@
             <arg value="10000"/>
         </exec>
     </target>
+
+    <target name="debug-keystore" depends="debug-keystore-check,debug-keystore-create"/>
 
     <target name="debug" depends="package-apk,debug-keystore" description="Build a fully signed debug APK.">
         <exec executable="${apksigner}" failonerror="true">
