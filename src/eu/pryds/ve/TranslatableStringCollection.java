@@ -11,6 +11,9 @@ import android.app.Activity;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * In-memory PO document model with parser/serializer helpers for translation workflow.
+ */
 public class TranslatableStringCollection implements Parcelable {
     Vector<TranslatableString> strings;
     TranslatableString header; //contains po header info

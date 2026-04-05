@@ -31,6 +31,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * Main editor screen for loading, editing, navigating and saving PO translations.
+ */
 public class MainActivity extends Activity implements GotoStringNumberDialogListener {
     
     private static final String PREF_STORAGE_NOTICE_SHOWN = "pref_storage_notice_shown";
@@ -43,6 +46,12 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
     private boolean hasShownStorageLegacyNotice = false;
+    private Switch approvedSwitch;
+    private TextView origStrView;
+    private EditText translStrView;
+    private TextView metadataView;
+    private Button[] pluralButtons;
+    private boolean suppressTranslationWatcher = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +60,20 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         hasShownStorageLegacyNotice = pref.getBoolean(PREF_STORAGE_NOTICE_SHOWN, false);
-        Switch approved = (Switch) findViewById(R.id.approved);
-        approved.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+        approvedSwitch = (Switch) findViewById(R.id.approved);
+        origStrView = (TextView) findViewById(R.id.orig_str);
+        translStrView = (EditText) findViewById(R.id.transl_str);
+        metadataView = (TextView) findViewById(R.id.metadata);
+        pluralButtons = new Button[] {
+                (Button) findViewById(R.id.plural0),
+                (Button) findViewById(R.id.plural1),
+                (Button) findViewById(R.id.plural2),
+                (Button) findViewById(R.id.plural3),
+                (Button) findViewById(R.id.plural4),
+                (Button) findViewById(R.id.plural5)
+        };
+
+        approvedSwitch.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (str != null) {
                     TranslatableString currStr = str.getString(currentString);
@@ -62,11 +83,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             }
         });
         
-        TextView origStr = (TextView) findViewById(R.id.orig_str);
-        origStr.setMovementMethod(new ScrollingMovementMethod()); //make scrollable
+        origStrView.setMovementMethod(new ScrollingMovementMethod()); //make scrollable
         
-        final EditText translStr = (EditText) findViewById(R.id.transl_str);
-        translStr.addTextChangedListener(new TextWatcher() {
+        translStrView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -75,7 +94,10 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             }
             @Override
             public void afterTextChanged(Editable editable) {
-               String changedText = translStr.getText().toString();
+               if (suppressTranslationWatcher) {
+                   return;
+               }
+               String changedText = translStrView.getText().toString();
                if (str != null) {
                    TranslatableString currStr = str.getString(currentString);
                    currStr.setTranslatedString(currentPluralForm, changedText);
@@ -84,8 +106,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             }
         });
         
-        TextView metadata = (TextView) findViewById(R.id.metadata);
-        metadata.setMovementMethod(new ScrollingMovementMethod());
+        metadataView.setMovementMethod(new ScrollingMovementMethod());
     }
     
     @Override
@@ -380,47 +401,19 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         if (str == null)
             return;
         TranslatableString currentStr = str.getString(currentString);
-        
-        Switch approved = (Switch) findViewById(R.id.approved);
-        approved.setChecked(!currentStr.isFuzzy());
-        
-        Button[] plural = new Button[] {
-                (Button) findViewById(R.id.plural0),
-                (Button) findViewById(R.id.plural1),
-                (Button) findViewById(R.id.plural2),
-                (Button) findViewById(R.id.plural3),
-                (Button) findViewById(R.id.plural4),
-                (Button) findViewById(R.id.plural5)
-        };
-        
-        int pluralForms = str.getHeader().getHeaderPluralFormCount(this);
-        
-        for (int i = 0; i < plural.length; i++) {
-            if (i < pluralForms && currentStr.isPluralString())
-                plural[i].setVisibility(Button.VISIBLE);
-            else
-                plural[i].setVisibility(Button.GONE);
-        }
-        
-        TextView origStr = (TextView) findViewById(R.id.orig_str);
-        origStr.setText(currentPluralForm > 0 ?
-                currentStr.getUntranslatedStringPlural() :
-                currentStr.getUntranslatedString()
-                );
-        
-        EditText translString = (EditText) findViewById(R.id.transl_str);
-        translString.setText(currentStr.getTranslatedString(currentPluralForm));
-        
+
+        approvedSwitch.setChecked(!currentStr.isFuzzy());
+        updatePluralButtons(currentStr);
+        updateEditorFields(currentStr);
         updateMetadata();
     }
     
     private void updateMetadata() {
         TranslatableString currentStr = str.getString(currentString);
-        TextView metadata = (TextView) findViewById(R.id.metadata);
         int fuzzyCount = str.countFuzzyStrings();
         int untransCount = str.countUntranslatedStrings();
         
-        metadata.setText(
+        metadataView.setText(
                 getResources().getText(R.string.meta_str_no) + " " +
                 (currentString+1) + "/" + str.size() +
                 
@@ -445,31 +438,64 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 "" : currentStr.getReferencesAsString()) + '\n'
                 );
     }
+
+    private void updatePluralButtons(TranslatableString currentStr) {
+        int pluralForms = str.getHeader().getHeaderPluralFormCount(this);
+        boolean showPluralButtons = currentStr.isPluralString();
+        for (int i = 0; i < pluralButtons.length; i++) {
+            boolean visible = showPluralButtons && i < pluralForms;
+            Button pluralButton = pluralButtons[i];
+            pluralButton.setVisibility(visible ? Button.VISIBLE : Button.GONE);
+            pluralButton.setSelected(visible && i == currentPluralForm);
+            pluralButton.setEnabled(visible);
+        }
+    }
+
+    private void updateEditorFields(TranslatableString currentStr) {
+        origStrView.setText(currentPluralForm > 0 ?
+                currentStr.getUntranslatedStringPlural() :
+                currentStr.getUntranslatedString());
+
+        String newTranslatedValue = currentStr.getTranslatedString(currentPluralForm);
+        String existingValue = translStrView.getText().toString();
+        if (!existingValue.equals(newTranslatedValue)) {
+            int selectionStart = translStrView.getSelectionStart();
+            int selectionEnd = translStrView.getSelectionEnd();
+            suppressTranslationWatcher = true;
+            translStrView.setText(newTranslatedValue);
+            suppressTranslationWatcher = false;
+            int newLength = translStrView.getText().length();
+            int safeStart = Math.max(0, Math.min(selectionStart, newLength));
+            int safeEnd = Math.max(0, Math.min(selectionEnd, newLength));
+            translStrView.setSelection(safeStart, safeEnd);
+        }
+    }
     
     private void enableInitiallyDisabledViews(boolean enable) {
+        updateNavigationState(enable);
+        approvedSwitch.setEnabled(enable);
+        origStrView.setEnabled(enable);
+        translStrView.setEnabled(enable);
+    }
+
+    private void updateNavigationState(boolean enable) {
+        if (menu == null) {
+            return;
+        }
         MenuItem actionPrev = menu.findItem(R.id.action_previous);
         actionPrev.setEnabled(enable);
-        
+
         MenuItem actionNext = menu.findItem(R.id.action_next);
         actionNext.setEnabled(enable);
-        
+
         MenuItem actionNextUnfinished = menu.findItem(R.id.action_nextunfinished);
         actionNextUnfinished.setEnabled(enable);
-        
+
         MenuItem actionGotostringnumber = menu.findItem(R.id.action_gotostringnumber);
         actionGotostringnumber.setEnabled(enable);
-        
+
         MenuItem actionSave = menu.findItem(R.id.action_save);
         actionSave.setEnabled(enable);
-        
-        Switch approvedSwitch = (Switch) findViewById(R.id.approved);
-        approvedSwitch.setEnabled(enable);
-        
-        TextView origStr = (TextView) findViewById(R.id.orig_str);
-        origStr.setEnabled(enable);
-        
-        EditText translStr = (EditText) findViewById(R.id.transl_str);
-        translStr.setEnabled(enable);
     }
     
     private void openSettings() {

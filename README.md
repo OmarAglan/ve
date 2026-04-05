@@ -24,6 +24,65 @@ At a high level, the app is made of:
 * `SettingsActivity`/`SettingsFragment`: translator metadata preferences.
 * `res/`: layouts, strings, menus and drawables.
 
+Manual smoke test (baseline)
+----------------------------
+
+Run this checklist after each small modernization change:
+
+1. **Open PO file**
+   * Use **Open file** and load a valid `.po` file.
+   * Confirm original/translated text areas are populated.
+2. **Navigate strings**
+   * Tap **Previous** and **Next**.
+   * Confirm string number and content update correctly.
+3. **Edit translation**
+   * Change text in translated field.
+   * Confirm metadata counters update.
+4. **Save file**
+   * Tap **Save file** and verify success toast.
+   * Reopen the file and verify edited text persists.
+5. **Settings read/write**
+   * Open **Settings**, edit translator fields, save/back out.
+   * Return and confirm values persist and are used on save.
+
+Current architecture map
+------------------------
+
+* **UI layer (legacy Java + framework widgets)**:
+  * `MainActivity` drives the translation editor.
+  * `FileChooser` handles local filesystem navigation.
+  * `SettingsActivity` + `SettingsFragment` handle translator identity/preferences.
+* **Model/parsing layer**:
+  * `TranslatableString` stores PO entry/header data.
+  * `TranslatableStringCollection` parses PO files and serializes back to PO output.
+* **Resources/config**:
+  * `res/layout/activity_main.xml` is the primary editor screen.
+  * `res/menu/main_activity_actions.xml` defines top app actions.
+* **Build system**:
+  * Gradle-based project (`settings.gradle`, root `build.gradle`, `app/build.gradle`).
+
+Current limitations
+-------------------
+
+* File parsing/saving is still done on the main thread (can cause UI jank on large files).
+* File access uses legacy storage assumptions; SAF migration is still pending.
+* `MainActivity` contains multiple responsibilities (navigation, editing, persistence trigger, UI state).
+* Automated tests are still limited; manual smoke testing remains important.
+
+Modernization roadmap (incremental)
+-----------------------------------
+
+1. **UI polish without behavior changes**
+   * Improve spacing/typography/section labeling on main editor.
+2. **MainActivity maintainability refactor**
+   * Cache views, split screen-update helpers, preserve current behavior.
+3. **Editor UX improvements**
+   * Avoid unnecessary text resets, preserve cursor position, clarify plural-form state.
+4. **Storage modernization (guarded rollout)**
+   * Introduce SAF-based flow while keeping legacy fallback initially.
+5. **Architecture and async improvements**
+   * Move parse/save work off main thread and continue decoupling UI/model responsibilities.
+
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
@@ -99,3 +158,17 @@ or [poedit](http://sourceforge.net/projects/poedit/) on desktop computers. When 
 Donations of any amount that you see fit are kindly accepted through Bitcoin address 12FPDWwNYyn6wRfybncM5VcJpM4ZP6QNnM. At some point in the future, in-app donations through Google Play will be possible.
 
 ![Donate Bitcoins](https://raw.github.com/pryds/ve/master/various/ve-donations-qr.png)
+
+Contributor workflow (step-by-step)
+-----------------------------------
+
+1. **Sync and branch**
+   * Pull latest changes and create a focused branch for one small change set.
+2. **Build**
+   * Run `./gradlew :app:assembleDebug`.
+3. **Run targeted checks**
+   * Run any relevant existing checks for your change area.
+4. **Install and verify**
+   * Install debug APK and execute the **Manual smoke test (baseline)** checklist above.
+5. **Submit small PR**
+   * Keep PR scope narrow (one modernization slice), include test notes and smoke-test results.

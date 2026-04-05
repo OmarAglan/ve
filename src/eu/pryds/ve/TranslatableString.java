@@ -14,6 +14,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 
+/**
+ * Represents one PO entry (or header entry) including source text, translation,
+ * comments, references and flags.
+ */
 public class TranslatableString implements Parcelable {
     private String translatorComments;
     private String extractedComments;
