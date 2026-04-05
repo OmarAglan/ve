@@ -299,6 +299,12 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     }
     
     private boolean ensureStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Toast.makeText(getApplicationContext(),
+                    getResources().getText(R.string.storage_legacy_mode_notice),
+                    Toast.LENGTH_LONG).show();
+            return true;
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
         }

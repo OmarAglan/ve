@@ -67,6 +67,7 @@ This repository now includes an Ant build pipeline at `build.xml` that can produ
    * `platforms/android-34` (or override with `-Dsdk.api.level=...`)
    * `build-tools/34.0.0` (or override with `-Dbuild.tools.version=...`)
    * Note: app `targetSdkVersion` is currently set to 28 to keep legacy external-storage file flows working during incremental modernization.
+   * Note: on Android 10+ devices, legacy external-storage browsing can still be constrained; migrating file access to SAF is a planned next step.
 3. Run:
    * `ant -p` to list available targets
    * `ant check-sdk` to validate SDK/tooling wiring
