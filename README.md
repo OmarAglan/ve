@@ -27,11 +27,11 @@ At a high level, the app is made of:
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase targets a very old Android API level and predates modern Android build/tooling. A practical upgrade path is:
+This codebase currently targets Android API level 18 (`targetSdkVersion="18"` in `AndroidManifest.xml`) and predates modern Android build/tooling. A practical upgrade path is:
 
 1. **Migrate to Gradle + Android Gradle Plugin**
-   * Replace Eclipse/Ant project files (`.classpath`, `project.properties`) with `build.gradle` and Gradle wrapper.
-   * Move to current `compileSdk`/`targetSdk` (for example API 34+) and a realistic `minSdk` baseline (for example API 21+).
+    * Replace Eclipse/Ant project files (`.classpath`, `project.properties`) with `build.gradle` and Gradle wrapper.
+    * Move to the latest stable `compileSdk`/`targetSdk` and a realistic `minSdk` baseline (for example API 21+).
 2. **Migrate support libraries to AndroidX**
    * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
 3. **Update deprecated Activity/Fragment patterns**
