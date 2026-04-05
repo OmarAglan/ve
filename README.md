@@ -86,10 +86,10 @@ Modernization roadmap (incremental)
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase now builds with Gradle and currently targets Android API level 28 (`targetSdkVersion="28"` in `AndroidManifest.xml`). A practical next upgrade path is:
+This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdkVersion="34"` in `AndroidManifest.xml`). The continuing modernization path is:
 
-1. **Finalize modern Android baseline**
-    * Keep moving to newer `compileSdkVersion`/`targetSdkVersion` while preserving file workflow behavior.
+1. **Maintain modern Android baseline**
+    * Keep dependencies and build tooling current while preserving file workflow behavior.
     * Revisit `minSdk` baseline once compatibility goals are agreed.
 2. **Migrate support libraries to AndroidX**
    * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
@@ -125,8 +125,8 @@ This repository now uses Gradle (`gradlew`, root `build.gradle`, `app/build.grad
 2. Ensure your SDK contains:
    * `platforms;android-34`
    * `build-tools;34.0.0`
-   * Note: app `targetSdkVersion` is currently set to 28 (not 29+) to keep legacy external-storage file flows working during incremental modernization.
-   * Note: on Android 10+ devices, legacy external-storage browsing can still be constrained; migrating file access to SAF is a planned next step.
+   * Note: app `targetSdkVersion` is currently set to 34 and uses SAF-based file loading on Android 10+.
+   * Note: legacy external-storage browsing remains as fallback behavior on older Android versions.
 3. Run:
    * `./gradlew :app:assembleDebug` to build a debug APK
    * Output APK path: `app/build/outputs/apk/debug/app-debug.apk`
