@@ -3,9 +3,9 @@ package eu.pryds.ve;
 import java.io.File;
 import java.util.Arrays;
 
+import androidx.preference.PreferenceManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.app.ListActivity;
 import android.app.backup.BackupManager;
 import android.content.Intent;

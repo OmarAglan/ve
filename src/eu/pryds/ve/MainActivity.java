@@ -14,9 +14,9 @@ import eu.pryds.ve.GotoStringNumberDialogFragment.GotoStringNumberDialogListener
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.fragment.app.FragmentActivity;
+import androidx.preference.PreferenceManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.Manifest;
 import android.content.DialogInterface;
@@ -43,7 +43,7 @@ import android.widget.Toast;
 /**
  * Main editor screen for loading, editing, navigating and saving PO translations.
  */
-public class MainActivity extends Activity implements GotoStringNumberDialogListener {
+public class MainActivity extends FragmentActivity implements GotoStringNumberDialogListener {
     
     private static final String PREF_STORAGE_NOTICE_SHOWN = "pref_storage_notice_shown";
     private TranslatableStringCollection str;
@@ -195,7 +195,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             Bundle bundle = new Bundle();
             bundle.putInt(GotoStringNumberDialogFragment.STRING_COUNT, str.size());
             gotoStr.setArguments(bundle);
-            gotoStr.show(getFragmentManager(), "gotostringnumber");
+            gotoStr.show(getSupportFragmentManager(), "gotostringnumber");
             return true;
         case R.id.action_settings:
             openSettings();
@@ -203,7 +203,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         case R.id.action_about:
             //show about dialog
             AboutDialogFragment about = new AboutDialogFragment();
-            about.show(getFragmentManager(), "AboutFragment");
+            about.show(getSupportFragmentManager(), "AboutFragment");
             return true;
         /*case R.id.action_donate:
             Intent donateIntent = new Intent(this, DonateActivity.class);

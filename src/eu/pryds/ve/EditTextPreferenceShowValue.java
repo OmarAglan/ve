@@ -1,9 +1,9 @@
 package eu.pryds.ve;
 
 import android.content.Context;
-import android.preference.EditTextPreference;
-import android.preference.Preference;
 import android.util.AttributeSet;
+import androidx.preference.EditTextPreference;
+import androidx.preference.Preference;
 
 public class EditTextPreferenceShowValue extends EditTextPreference {
     public EditTextPreferenceShowValue(Context context, AttributeSet attributeSet) {

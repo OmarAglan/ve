@@ -65,7 +65,7 @@ Current limitations
 -------------------
 
 * File parsing/saving is still done on the main thread (can cause UI jank on large files).
-* File access uses legacy storage assumptions; SAF migration is still pending.
+* On pre-Android-10 devices, legacy external-storage browsing remains as compatibility fallback.
 * `MainActivity` contains multiple responsibilities (navigation, editing, persistence trigger, UI state).
 * Automated tests are still limited; manual smoke testing remains important.
 
@@ -78,9 +78,7 @@ Modernization roadmap (incremental)
    * Cache views, split screen-update helpers, preserve current behavior.
 3. **Editor UX improvements**
    * Avoid unnecessary text resets, preserve cursor position, clarify plural-form state.
-4. **Storage modernization (guarded rollout)**
-   * Introduce SAF-based flow while keeping legacy fallback initially.
-5. **Architecture and async improvements**
+4. **Architecture and async improvements**
    * Move parse/save work off main thread and continue decoupling UI/model responsibilities.
 
 How to modernize Vé for newer Android versions
@@ -91,13 +89,11 @@ This codebase now builds with Gradle and currently targets Android API level 34 
 1. **Maintain modern Android baseline**
     * Keep dependencies and build tooling current while preserving file workflow behavior.
     * Revisit `minSdk` baseline once compatibility goals are agreed.
-2. **Migrate support libraries to AndroidX**
-   * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
-3. **Update deprecated Activity/Fragment patterns**
-   * Continue replacing legacy preference APIs with `androidx.preference`.
-4. **Modernize storage/file access**
-   * Replace direct legacy external storage assumptions with modern storage access patterns (SAF/scoped storage friendly flows).
-5. **Run compatibility validation**
+2. **Continue modern platform cleanup**
+   * Replace remaining legacy data structures/utilities with modern Java/Kotlin equivalents.
+3. **Modernize storage/file access fully**
+   * Retire pre-Android-10 legacy file browsing fallback once compatibility goals allow.
+4. **Run compatibility validation**
    * Test on recent Android versions/emulators (Android 12, 13, 14+) and verify open/edit/save PO flows.
 
 How to improve the codebase

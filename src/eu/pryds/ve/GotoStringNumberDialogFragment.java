@@ -1,14 +1,14 @@
 package eu.pryds.ve;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
+import androidx.fragment.app.DialogFragment;
 
 public class GotoStringNumberDialogFragment extends DialogFragment {
     protected NumberPicker strNumberPicker;
@@ -62,15 +62,15 @@ public class GotoStringNumberDialogFragment extends DialogFragment {
     
     // Override the Fragment.onAttach() method to instantiate the GotoStringNumberDialogListener
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         // Verify that the host activity implements the callback interface
         try {
             // Instantiate the NoticeDialogListener so we can send events to the host
-            mListener = (GotoStringNumberDialogListener) activity;
+            mListener = (GotoStringNumberDialogListener) context;
         } catch (ClassCastException e) {
             // The activity doesn't implement the interface, throw exception
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement GotoStringNumberDialogListener");
         }
     }
