@@ -86,7 +86,7 @@ Modernization roadmap (incremental)
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdk 34` in `/home/runner/work/ve/ve/app/build.gradle`). The continuing modernization path is:
+This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdk 34` in `app/build.gradle`). The continuing modernization path is:
 
 1. **Maintain modern Android baseline**
     * Keep dependencies and build tooling current while preserving file workflow behavior.

@@ -53,7 +53,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private File openedFile;
     private Uri openedFileUri;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
-    private static final String ANDROID_EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents";
+    private static final String CONTENT_SCHEME = "content";
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
     private boolean hasShownStorageLegacyNotice = false;
     private Switch approvedSwitch;
@@ -315,9 +315,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             showErrorMessage(R.string.file_unknownerror, null);
             return;
         }
-        final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        final int uriPermissionFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try {
-            getContentResolver().takePersistableUriPermission(safeFileUri, flags);
+            getContentResolver().takePersistableUriPermission(safeFileUri, uriPermissionFlags);
         } catch (SecurityException e) {
             // Continue; temporary grant from chooser can still be sufficient for this session.
         }
@@ -628,8 +628,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             return null;
         }
         String scheme = fileUri.getScheme();
-        String authority = fileUri.getAuthority();
-        if (!"content".equals(scheme) || !ANDROID_EXTERNAL_STORAGE_AUTHORITY.equals(authority)) {
+        if (!CONTENT_SCHEME.equals(scheme)) {
             return null;
         }
         if (!DocumentsContract.isDocumentUri(this, fileUri)) {
@@ -644,6 +643,10 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         if (documentId == null || documentId.length() == 0 || documentId.startsWith("/")) {
             return null;
         }
-        return DocumentsContract.buildDocumentUri(ANDROID_EXTERNAL_STORAGE_AUTHORITY, documentId);
+        String authority = fileUri.getAuthority();
+        if (authority == null || authority.length() == 0) {
+            return null;
+        }
+        return DocumentsContract.buildDocumentUri(authority, documentId);
     }
 }
