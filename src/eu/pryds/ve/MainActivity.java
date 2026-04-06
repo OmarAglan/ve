@@ -51,7 +51,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private int currentPluralForm = 0;
     private Menu menu;
     private File openedFile;
-    private Uri openedFileUri;
+    private Uri currentFileUri;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     private static final String CONTENT_SCHEME = "content";
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
@@ -133,8 +133,8 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         savedInstanceState.putParcelable("str", str);
         savedInstanceState.putInt("currentString", currentString);
         savedInstanceState.putInt("currentPluralForm", currentPluralForm);
-        if (openedFileUri != null) {
-            savedInstanceState.putString("openedFileUri", openedFileUri.toString());
+        if (currentFileUri != null) {
+            savedInstanceState.putString("openedFileUri", currentFileUri.toString());
         }
         
         super.onSaveInstanceState(savedInstanceState);
@@ -149,7 +149,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             currentPluralForm = savedInstanceState.getInt("currentPluralForm");
             String openedFileUriString = savedInstanceState.getString("openedFileUri");
             if (openedFileUriString != null) {
-                openedFileUri = Uri.parse(openedFileUriString);
+                currentFileUri = Uri.parse(openedFileUriString);
             }
             
             updateScreen();
@@ -299,7 +299,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
 
         str = tempCollection;
         openedFile = file;
-        openedFileUri = null;
+        currentFileUri = null;
         updateScreen();
         enableInitiallyDisabledViews(true);
     }
@@ -310,7 +310,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             return;
         }
         Uri fileUri = data.getData();
-        Uri safeFileUri = toAcceptedSafUri(fileUri);
+        Uri safeFileUri = validateAndNormalizeSafUri(fileUri);
         if (safeFileUri == null) {
             showErrorMessage(R.string.file_unknownerror, null);
             return;
@@ -345,7 +345,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         }
 
         str = tempCollection;
-        openedFileUri = safeFileUri;
+        currentFileUri = safeFileUri;
         openedFile = null;
         updateScreen();
         enableInitiallyDisabledViews(true);
@@ -524,8 +524,11 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
             int selectionStart = translStrView.getSelectionStart();
             int selectionEnd = translStrView.getSelectionEnd();
             suppressTranslationWatcher = true;
-            translStrView.setText(newTranslatedValue);
-            suppressTranslationWatcher = false;
+            try {
+                translStrView.setText(newTranslatedValue);
+            } finally {
+                suppressTranslationWatcher = false;
+            }
             int newLength = translStrView.getText().length();
             int safeStart = Math.max(0, Math.min(selectionStart, newLength));
             int safeEnd = Math.max(0, Math.min(selectionEnd, newLength));
@@ -570,9 +573,9 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     }
 
     private boolean saveToCurrentLocation(String[] poLines) {
-        if (openedFileUri != null) {
+        if (currentFileUri != null) {
             try {
-                writePoLinesToUri(openedFileUri, poLines);
+                writePoLinesToUri(currentFileUri, poLines);
                 return true;
             } catch (IOException e) {
                 showErrorMessage(R.string.file_ioerror, null);
@@ -623,7 +626,7 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         writer.flush();
     }
 
-    private Uri toAcceptedSafUri(Uri fileUri) {
+    private Uri validateAndNormalizeSafUri(Uri fileUri) {
         if (fileUri == null) {
             return null;
         }
@@ -640,11 +643,11 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         } catch (IllegalArgumentException e) {
             return null;
         }
-        if (documentId == null || documentId.length() == 0 || documentId.startsWith("/")) {
+        if (documentId == null || documentId.isEmpty() || documentId.startsWith("/")) {
             return null;
         }
         String authority = fileUri.getAuthority();
-        if (authority == null || authority.length() == 0) {
+        if (authority == null || authority.isEmpty()) {
             return null;
         }
         return DocumentsContract.buildDocumentUri(authority, documentId);
