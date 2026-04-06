@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Objects;
 import java.nio.charset.StandardCharsets;
 
 import eu.pryds.ve.GotoStringNumberDialogFragment.GotoStringNumberDialogListener;
@@ -258,25 +259,21 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             showErrorMessage(R.string.file_unknownerror, null);
             return;
         }
-        final int uriPermissionFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        final int grantedPermissionFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try {
-            getContentResolver().takePersistableUriPermission(safeFileUri, uriPermissionFlags);
+            getContentResolver().takePersistableUriPermission(safeFileUri, grantedPermissionFlags);
         } catch (SecurityException e) {
             // Continue; temporary grant from chooser can still be sufficient for this session.
         }
 
         TranslatableStringCollection tempCollection = new TranslatableStringCollection();
         int parseResult;
-        InputStream in = null;
-        try {
-            in = getContentResolver().openInputStream(safeFileUri);
-            if (in == null) {
+        try (InputStream stream = getContentResolver().openInputStream(safeFileUri)) {
+            if (stream == null) {
                 showErrorMessage(R.string.file_ioerror, null);
                 return;
             }
-            try (InputStream stream = in) {
-                parseResult = tempCollection.parse(stream, this);
-            }
+            parseResult = tempCollection.parse(stream, this);
         } catch (IOException e) {
             showErrorMessage(R.string.file_ioerror, null);
             return;
@@ -414,19 +411,23 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
 
         String newTranslatedValue = currentStr.getTranslatedString(currentPluralForm);
         String existingValue = translStrView.getText().toString();
-        if (!existingValue.equals(newTranslatedValue)) {
+        if (!Objects.equals(existingValue, newTranslatedValue)) {
             int selectionStart = translStrView.getSelectionStart();
             int selectionEnd = translStrView.getSelectionEnd();
             suppressTranslationWatcher = true;
             try {
-                translStrView.setText(newTranslatedValue);
+                translStrView.setText(newTranslatedValue == null ? "" : newTranslatedValue);
             } finally {
                 suppressTranslationWatcher = false;
             }
             int newLength = translStrView.getText().length();
             int safeStart = Math.max(0, Math.min(selectionStart, newLength));
             int safeEnd = Math.max(0, Math.min(selectionEnd, newLength));
-            translStrView.setSelection(safeStart, safeEnd);
+            if (safeStart <= safeEnd) {
+                translStrView.setSelection(safeStart, safeEnd);
+            } else {
+                translStrView.setSelection(safeEnd, safeStart);
+            }
         }
     }
     
@@ -512,7 +513,12 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         } catch (IllegalArgumentException e) {
             return null;
         }
-        if (documentId == null || documentId.isEmpty() || documentId.startsWith("/")) {
+        String decodedDocumentId = Uri.decode(documentId);
+        if (documentId == null || documentId.isEmpty() || documentId.startsWith("/")
+                || containsUnsafeDocumentIdToken(documentId)
+                || decodedDocumentId == null || decodedDocumentId.isEmpty()
+                || decodedDocumentId.startsWith("/")
+                || containsUnsafeDocumentIdToken(decodedDocumentId)) {
             return null;
         }
         String authority = fileUri.getAuthority();
@@ -520,5 +526,9 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             return null;
         }
         return DocumentsContract.buildDocumentUri(authority, documentId);
+    }
+
+    private boolean containsUnsafeDocumentIdToken(String value) {
+        return value.contains("..") || value.contains("\\") || value.contains("\u0000");
     }
 }
