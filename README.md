@@ -20,7 +20,6 @@ At a high level, the app is made of:
 
 * `MainActivity`: the main translation editor screen.
 * `TranslatableString` and `TranslatableStringCollection`: PO parsing/writing model layer.
-* `FileChooser`: local file picker.
 * `SettingsActivity`/`SettingsFragment`: translator metadata preferences.
 * `res/`: layouts, strings, menus and drawables.
 
@@ -48,9 +47,8 @@ Run this checklist after each small modernization change:
 Current architecture map
 ------------------------
 
-* **UI layer (legacy Java + framework widgets)**:
+* **UI layer (Java + framework widgets)**:
   * `MainActivity` drives the translation editor.
-  * `FileChooser` handles local filesystem navigation.
   * `SettingsActivity` + `SettingsFragment` handle translator identity/preferences.
 * **Model/parsing layer**:
   * `TranslatableString` stores PO entry/header data.
@@ -65,7 +63,7 @@ Current limitations
 -------------------
 
 * File parsing/saving is still done on the main thread (can cause UI jank on large files).
-* On pre-Android-10 devices, legacy external-storage browsing remains as compatibility fallback.
+* Storage now uses SAF document URIs for open/save flows.
 * `MainActivity` contains multiple responsibilities (navigation, editing, persistence trigger, UI state).
 * Automated tests are still limited; manual smoke testing remains important.
 
@@ -84,17 +82,14 @@ Modernization roadmap (incremental)
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdk 34` in `app/build.gradle`). The continuing modernization path is:
+This codebase now builds with Gradle, targets Android API level 34 (`targetSdk 34`), and uses a modern minimum API level 24 (`minSdk 24`).
 
 1. **Maintain modern Android baseline**
-    * Keep dependencies and build tooling current while preserving file workflow behavior.
-    * Revisit `minSdk` baseline once compatibility goals are agreed.
+   * Keep dependencies and build tooling current.
 2. **Continue modern platform cleanup**
-   * Replace remaining legacy data structures/utilities with modern Java/Kotlin equivalents.
-3. **Modernize storage/file access fully**
-   * Retire pre-Android-10 legacy file browsing fallback once compatibility goals allow.
-4. **Run compatibility validation**
-   * Test on recent Android versions/emulators (Android 12, 13, 14+) and verify open/edit/save PO flows.
+   * Replace remaining legacy utilities and disabled legacy features.
+3. **Run compatibility validation**
+    * Test on recent Android versions/emulators (Android 12, 13, 14+) and verify open/edit/save PO flows.
 
 How to improve the codebase
 ---------------------------
@@ -120,8 +115,8 @@ This repository now uses Gradle (`gradlew`, root `build.gradle`, `app/build.grad
 2. Ensure your SDK contains:
    * `platforms;android-34`
    * `build-tools;34.0.0`
-   * Note: app `targetSdkVersion` is currently set to 34 and uses SAF-based file loading on Android 10+.
-   * Note: legacy external-storage browsing remains as fallback behavior on older Android versions.
+   * App currently uses `targetSdkVersion` 34 and `minSdk` 24.
+   * File open/save flows use SAF-based document URIs.
 3. Run:
    * `./gradlew :app:assembleDebug` to build a debug APK
    * Output APK path: `app/build/outputs/apk/debug/app-debug.apk`

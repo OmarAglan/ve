@@ -1,8 +1,6 @@
 package eu.pryds.ve;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,13 +16,10 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.preference.PreferenceManager;
 import android.os.Bundle;
 import android.app.AlertDialog;
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.DocumentsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -45,24 +40,18 @@ import android.widget.Toast;
  */
 public class MainActivity extends FragmentActivity implements GotoStringNumberDialogListener {
     
-    private static final String PREF_STORAGE_NOTICE_SHOWN = "pref_storage_notice_shown";
     private TranslatableStringCollection str;
     private int currentString = 0;
     private int currentPluralForm = 0;
     private Menu menu;
-    private File openedFile;
     private Uri currentFileUri;
-    private static final int STORAGE_PERMISSION_REQUEST = 2;
     private static final String CONTENT_SCHEME = "content";
-    public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
-    private boolean hasShownStorageLegacyNotice = false;
     private Switch approvedSwitch;
     private TextView origStrView;
     private EditText translStrView;
     private TextView metadataView;
     private Button[] pluralButtons;
     private boolean suppressTranslationWatcher = false;
-    private ActivityResultLauncher<Intent> chooseFileLauncher;
     private ActivityResultLauncher<Intent> chooseSafFileLauncher;
     
     @Override
@@ -70,8 +59,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        hasShownStorageLegacyNotice = pref.getBoolean(PREF_STORAGE_NOTICE_SHOWN, false);
         approvedSwitch = (Switch) findViewById(R.id.approved);
         origStrView = (TextView) findViewById(R.id.orig_str);
         translStrView = (EditText) findViewById(R.id.transl_str);
@@ -120,9 +107,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         
         metadataView.setMovementMethod(new ScrollingMovementMethod());
 
-        chooseFileLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                this::handleLegacyFileChooserResult);
         chooseSafFileLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 this::handleSafFileChooserResult);
@@ -211,19 +195,10 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             return true;*/
         case R.id.action_load:
             str = new TranslatableStringCollection();
-            if (shouldUseSafFileFlow()) {
-                Intent safLoadIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                safLoadIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                safLoadIntent.setType("*/*");
-                chooseSafFileLauncher.launch(safLoadIntent);
-            } else {
-                if (!ensureStoragePermission()) {
-                    return true;
-                }
-                
-                Intent loadIntent = new Intent(this, FileChooser.class);
-                chooseFileLauncher.launch(loadIntent);
-            }
+            Intent safLoadIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            safLoadIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            safLoadIntent.setType("*/*");
+            chooseSafFileLauncher.launch(safLoadIntent);
             return true;
         case R.id.action_save:
             SharedPreferences pref =
@@ -272,38 +247,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         .show();
     }
     
-    private void handleLegacyFileChooserResult(ActivityResult result) {
-        if (result.getResultCode() != RESULT_OK || result.getData() == null) {
-            return;
-        }
-        String filePath = result.getData().getStringExtra(CHOOSE_FILE_MESSAGE);
-        if (filePath == null || filePath.length() == 0) {
-            showErrorMessage(R.string.file_unknownerror, null);
-            return;
-        }
-
-        File file = new File(filePath);
-        if (!file.exists() || !file.canRead()) {
-            int errorMsg = (!file.exists()
-                    ? R.string.file_filenotexist : R.string.file_cannotreadfile);
-            showErrorMessage(errorMsg, file.getName());
-            return;
-        }
-
-        TranslatableStringCollection tempCollection = new TranslatableStringCollection();
-        int parseResult = tempCollection.parse(file, this); // TODO: In a separate thread
-        if (parseResult != TranslatableStringCollection.ERROR_NONE) {
-            showParseError(parseResult);
-            return;
-        }
-
-        str = tempCollection;
-        openedFile = file;
-        currentFileUri = null;
-        updateScreen();
-        enableInitiallyDisabledViews(true);
-    }
-
     private void handleSafFileChooserResult(ActivityResult result) {
         Intent data = result.getData();
         if (result.getResultCode() != RESULT_OK || data == null || data.getData() == null) {
@@ -346,7 +289,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
 
         str = tempCollection;
         currentFileUri = safeFileUri;
-        openedFile = null;
         updateScreen();
         enableInitiallyDisabledViews(true);
     }
@@ -369,54 +311,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             showErrorMessage(R.string.file_unknownerror, null);
             break;
         }
-    }
-    
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == STORAGE_PERMISSION_REQUEST) {
-            boolean readGranted = false;
-            boolean writeGranted = false;
-            for (int i = 0; i < permissions.length && i < grantResults.length; i++) {
-                if (Manifest.permission.READ_EXTERNAL_STORAGE.equals(permissions[i])) {
-                    readGranted = grantResults[i] == PackageManager.PERMISSION_GRANTED;
-                } else if (Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permissions[i])) {
-                    writeGranted = grantResults[i] == PackageManager.PERMISSION_GRANTED;
-                }
-            }
-            if (!(readGranted && writeGranted)) {
-                Toast.makeText(getApplicationContext(),
-                        getText(R.string.storage_permission_required),
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-    
-    private boolean ensureStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!hasShownStorageLegacyNotice) {
-                Toast.makeText(getApplicationContext(),
-                        getText(R.string.storage_legacy_mode_notice),
-                        Toast.LENGTH_LONG).show();
-                hasShownStorageLegacyNotice = true;
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-                pref.edit().putBoolean(PREF_STORAGE_NOTICE_SHOWN, true).apply();
-            }
-            return true;
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
-        boolean hasWrite = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        boolean hasRead = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        if (hasWrite && hasRead) {
-            return true;
-        }
-        requestPermissions(new String[] {
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }, STORAGE_PERMISSION_REQUEST);
-        return false;
     }
     
     @Override
@@ -568,10 +462,6 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         startActivity(intent);
     }
 
-    private boolean shouldUseSafFileFlow() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-    }
-
     private boolean saveToCurrentLocation(String[] poLines) {
         if (currentFileUri != null) {
             try {
@@ -582,29 +472,8 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
                 return false;
             }
         }
-
-        if (openedFile == null) {
-            showErrorMessage(R.string.file_unknownerror, null);
-            return false;
-        }
-        if (!openedFile.exists()) {
-            showErrorMessage(R.string.file_filenotexist, openedFile.getName());
-            return false;
-        }
-        if (!openedFile.canWrite()) {
-            showErrorMessage(R.string.file_cannotwritefile, openedFile.getName());
-            return false;
-        }
-
-        try {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(openedFile))) {
-                writePoLines(writer, poLines);
-            }
-            return true;
-        } catch (IOException e) {
-            showErrorMessage(R.string.file_ioerror, openedFile.getName());
-            return false;
-        }
+        showErrorMessage(R.string.file_unknownerror, null);
+        return false;
     }
 
     private void writePoLinesToUri(Uri uri, String[] poLines) throws IOException {

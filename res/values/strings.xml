@@ -50,10 +50,6 @@
     <string name="plural_form_4">4</string>
     <string name="plural_form_5">5</string>
     <string name="plural_form_6">6</string>
-    <string name="title_activity_file_chooser">Choose File</string>
-    <string name="file_directory_postfix">[dir]</string>
-    <string name="file_parent_dir">[Parent directory]</string>
-    <string name="file_current_dir">Current directory:</string>
     <string name="error">Error</string>
     <string name="file_filenotexist">The file does not exist.</string>
     <string name="file_notpofile">The file does not seem to be a PO file.</string>
@@ -64,8 +60,6 @@
     <string name="file_cannotwritefile">Cannot write to file.</string>
     <string name="file_cannotreaddir">Cannot read from directory.</string>
     <string name="file_saved">File was saved.</string>
-    <string name="storage_permission_required">Storage permission is required to open and save files.</string>
-    <string name="storage_legacy_mode_notice">On Android 10+, file access may be limited until the file chooser is modernized.</string>
     <string name="not_all_fields_filled">Error: You did not fill in all fields in the Settings. The file has not been saved.</string>
     <string name="title_activity_donate">Donate to Vé</string>
     <string name="donate_intro">If you like this app, please consider donating an amount of your choice to the developer. Vé is built entirely on voluntary basis, and it has whatever price tag you wish. If you want to use it for free, feel welcome to do so. If you want to pay an amount to support the developer, you can do so via Google Wallet through the in-app billing below, or via the app\'s website. Every donation goes directly to the developer of Vé, except for in-app donations which will be subject to Google\'s usual 30 percent share.</string>
