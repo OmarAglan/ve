@@ -71,13 +71,13 @@ public class DonateActivity extends Activity implements OnClickListener {
         mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             public void onIabSetupFinished(IabResult result) {
                 if (!result.isSuccess()) {
-                   // Oh no, there was a problem.
+                    // Oh no, there was a problem.
                     new AlertDialog.Builder(thisActivity)
                     .setTitle(R.string.error)
-                   .setMessage(getText(R.string.donate_init_error) + " " + result.toString())
+                    .setMessage(getText(R.string.donate_init_error) + " " + result.toString())
                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                       @Override
-                       public void onClick(DialogInterface dialog, int which) {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
                            // do nothing
                        }
                    })
