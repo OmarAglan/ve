@@ -86,7 +86,7 @@ Modernization roadmap (incremental)
 How to modernize Vé for newer Android versions
 ----------------------------------------------
 
-This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdkVersion="34"` in `AndroidManifest.xml`). The continuing modernization path is:
+This codebase now builds with Gradle and currently targets Android API level 34 (`targetSdk 34` in `/home/runner/work/ve/ve/app/build.gradle`). The continuing modernization path is:
 
 1. **Maintain modern Android baseline**
     * Keep dependencies and build tooling current while preserving file workflow behavior.
@@ -94,8 +94,7 @@ This codebase now builds with Gradle and currently targets Android API level 34 
 2. **Migrate support libraries to AndroidX**
    * Replace old support APIs and deprecated framework APIs with AndroidX equivalents.
 3. **Update deprecated Activity/Fragment patterns**
-   * Replace `startActivityForResult`/`onActivityResult` with Activity Result APIs.
-   * Replace legacy preference APIs with `androidx.preference`.
+   * Continue replacing legacy preference APIs with `androidx.preference`.
 4. **Modernize storage/file access**
    * Replace direct legacy external storage assumptions with modern storage access patterns (SAF/scoped storage friendly flows).
 5. **Run compatibility validation**

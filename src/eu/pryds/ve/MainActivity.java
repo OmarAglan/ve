@@ -11,6 +11,9 @@ import java.nio.charset.StandardCharsets;
 
 import eu.pryds.ve.GotoStringNumberDialogFragment.GotoStringNumberDialogListener;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.app.Activity;
@@ -49,8 +52,6 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private Menu menu;
     private File openedFile;
     private Uri openedFileUri;
-    public final static int CHOOSE_FILE_REQUEST = 1;
-    public final static int CHOOSE_SAF_FILE_REQUEST = 3;
     private static final int STORAGE_PERMISSION_REQUEST = 2;
     private static final String ANDROID_EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents";
     public final static String CHOOSE_FILE_MESSAGE = "eu.pryds.ve.choosefile";
@@ -61,6 +62,8 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
     private TextView metadataView;
     private Button[] pluralButtons;
     private boolean suppressTranslationWatcher = false;
+    private ActivityResultLauncher<Intent> chooseFileLauncher;
+    private ActivityResultLauncher<Intent> chooseSafFileLauncher;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +119,13 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         });
         
         metadataView.setMovementMethod(new ScrollingMovementMethod());
+
+        chooseFileLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                this::handleLegacyFileChooserResult);
+        chooseSafFileLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                this::handleSafFileChooserResult);
     }
     
     @Override
@@ -205,14 +215,14 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
                 Intent safLoadIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 safLoadIntent.addCategory(Intent.CATEGORY_OPENABLE);
                 safLoadIntent.setType("*/*");
-                startActivityForResult(safLoadIntent, CHOOSE_SAF_FILE_REQUEST);
+                chooseSafFileLauncher.launch(safLoadIntent);
             } else {
                 if (!ensureStoragePermission()) {
                     return true;
                 }
                 
                 Intent loadIntent = new Intent(this, FileChooser.class);
-                startActivityForResult(loadIntent, CHOOSE_FILE_REQUEST);
+                chooseFileLauncher.launch(loadIntent);
             }
             return true;
         case R.id.action_save:
@@ -262,112 +272,102 @@ public class MainActivity extends Activity implements GotoStringNumberDialogList
         .show();
     }
     
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CHOOSE_FILE_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                String filePath = data.getStringExtra(CHOOSE_FILE_MESSAGE);
-                
-                File file = new File(filePath);
-                if (!file.exists() || !file.canRead()) {
-                    int errorMsg = (!file.exists()
-                            ? R.string.file_filenotexist : R.string.file_cannotreadfile);
-                    showErrorMessage(errorMsg, file.getName());
-                    return;
-                }
-                
-                // Read PO file and parse syntax into internal data structure (TranslatableStringCollection):
-                TranslatableStringCollection tempCollection = new TranslatableStringCollection();
-                int parseResult = tempCollection.parse(file, this); // TODO: In a separate thread
-                
-                if (parseResult != TranslatableStringCollection.ERROR_NONE) {
-                    switch (parseResult) {
-                    case TranslatableStringCollection.ERROR_NOT_PO_FILE:
-                        showErrorMessage(R.string.file_notpofile, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_FILE_EMPTY:
-                        showErrorMessage(R.string.file_fileempty, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_FILE_NOT_FOUND:
-                        showErrorMessage(R.string.file_filenotexist, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_IO:
-                        showErrorMessage(R.string.file_ioerror, null);
-                        break;
-                    default:
-                        showErrorMessage(R.string.file_unknownerror, null);
-                        break;
-                    }
-                    
-                    return; // Return without saving result or updating screen (upon error)
-                }
-                
-                str = tempCollection;
-                openedFile = file;
-                openedFileUri = null;
-                
-                updateScreen();
-                enableInitiallyDisabledViews(true);
+    private void handleLegacyFileChooserResult(ActivityResult result) {
+        if (result.getResultCode() != RESULT_OK || result.getData() == null) {
+            return;
+        }
+        String filePath = result.getData().getStringExtra(CHOOSE_FILE_MESSAGE);
+        if (filePath == null || filePath.length() == 0) {
+            showErrorMessage(R.string.file_unknownerror, null);
+            return;
+        }
+
+        File file = new File(filePath);
+        if (!file.exists() || !file.canRead()) {
+            int errorMsg = (!file.exists()
+                    ? R.string.file_filenotexist : R.string.file_cannotreadfile);
+            showErrorMessage(errorMsg, file.getName());
+            return;
+        }
+
+        TranslatableStringCollection tempCollection = new TranslatableStringCollection();
+        int parseResult = tempCollection.parse(file, this); // TODO: In a separate thread
+        if (parseResult != TranslatableStringCollection.ERROR_NONE) {
+            showParseError(parseResult);
+            return;
+        }
+
+        str = tempCollection;
+        openedFile = file;
+        openedFileUri = null;
+        updateScreen();
+        enableInitiallyDisabledViews(true);
+    }
+
+    private void handleSafFileChooserResult(ActivityResult result) {
+        Intent data = result.getData();
+        if (result.getResultCode() != RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
+        Uri fileUri = data.getData();
+        Uri safeFileUri = toAcceptedSafUri(fileUri);
+        if (safeFileUri == null) {
+            showErrorMessage(R.string.file_unknownerror, null);
+            return;
+        }
+        final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        try {
+            getContentResolver().takePersistableUriPermission(safeFileUri, flags);
+        } catch (SecurityException e) {
+            // Continue; temporary grant from chooser can still be sufficient for this session.
+        }
+
+        TranslatableStringCollection tempCollection = new TranslatableStringCollection();
+        int parseResult;
+        InputStream in = null;
+        try {
+            in = getContentResolver().openInputStream(safeFileUri);
+            if (in == null) {
+                showErrorMessage(R.string.file_ioerror, null);
+                return;
             }
-        } else if (requestCode == CHOOSE_SAF_FILE_REQUEST) {
-            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                Uri fileUri = data.getData();
-                Uri safeFileUri = toAcceptedSafUri(fileUri);
-                if (safeFileUri == null) {
-                    showErrorMessage(R.string.file_unknownerror, null);
-                    return;
-                }
-                final int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                try {
-                    getContentResolver().takePersistableUriPermission(safeFileUri, flags);
-                } catch (SecurityException e) {
-                    // Continue; temporary grant from chooser can still be sufficient for this session.
-                }
-
-                TranslatableStringCollection tempCollection = new TranslatableStringCollection();
-                int parseResult;
-                InputStream in = null;
-                try {
-                    in = getContentResolver().openInputStream(safeFileUri);
-                    if (in == null) {
-                        showErrorMessage(R.string.file_ioerror, null);
-                        return;
-                    }
-                    try (InputStream stream = in) {
-                        parseResult = tempCollection.parse(stream, this);
-                    }
-                } catch (IOException e) {
-                    showErrorMessage(R.string.file_ioerror, null);
-                    return;
-                }
-
-                if (parseResult != TranslatableStringCollection.ERROR_NONE) {
-                    switch (parseResult) {
-                    case TranslatableStringCollection.ERROR_NOT_PO_FILE:
-                        showErrorMessage(R.string.file_notpofile, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_FILE_EMPTY:
-                        showErrorMessage(R.string.file_fileempty, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_FILE_NOT_FOUND:
-                        showErrorMessage(R.string.file_filenotexist, null);
-                        break;
-                    case TranslatableStringCollection.ERROR_IO:
-                        showErrorMessage(R.string.file_ioerror, null);
-                        break;
-                    default:
-                        showErrorMessage(R.string.file_unknownerror, null);
-                        break;
-                    }
-                    return;
-                }
-
-                str = tempCollection;
-                openedFileUri = safeFileUri;
-                openedFile = null;
-                updateScreen();
-                enableInitiallyDisabledViews(true);
+            try (InputStream stream = in) {
+                parseResult = tempCollection.parse(stream, this);
             }
+        } catch (IOException e) {
+            showErrorMessage(R.string.file_ioerror, null);
+            return;
+        }
+
+        if (parseResult != TranslatableStringCollection.ERROR_NONE) {
+            showParseError(parseResult);
+            return;
+        }
+
+        str = tempCollection;
+        openedFileUri = safeFileUri;
+        openedFile = null;
+        updateScreen();
+        enableInitiallyDisabledViews(true);
+    }
+
+    private void showParseError(int parseResult) {
+        switch (parseResult) {
+        case TranslatableStringCollection.ERROR_NOT_PO_FILE:
+            showErrorMessage(R.string.file_notpofile, null);
+            break;
+        case TranslatableStringCollection.ERROR_FILE_EMPTY:
+            showErrorMessage(R.string.file_fileempty, null);
+            break;
+        case TranslatableStringCollection.ERROR_FILE_NOT_FOUND:
+            showErrorMessage(R.string.file_filenotexist, null);
+            break;
+        case TranslatableStringCollection.ERROR_IO:
+            showErrorMessage(R.string.file_ioerror, null);
+            break;
+        default:
+            showErrorMessage(R.string.file_unknownerror, null);
+            break;
         }
     }
     
