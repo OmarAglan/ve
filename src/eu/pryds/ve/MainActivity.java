@@ -235,7 +235,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             if (prefName.length() == 0 || prefEmail.length() == 0 ||
                     prefMaillist.length() == 0) {
                 Toast.makeText(getApplicationContext(),
-                        getResources().getText(R.string.not_all_fields_filled),
+                        getText(R.string.not_all_fields_filled),
                         Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -247,7 +247,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
                 return true;
             }
             Toast.makeText(getApplicationContext(),
-                    getResources().getText(R.string.file_saved),
+                    getText(R.string.file_saved),
                     Toast.LENGTH_SHORT).show();
             return true;
         default:
@@ -258,7 +258,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
     private void showErrorMessage(int errorMsg, String optionalFileName) {
         // if optionalFileName is null or an empty string, ignore it
         boolean showFileName = (optionalFileName != null && optionalFileName.length() > 0);
-        CharSequence errorMessage = getResources().getText(errorMsg);
+        CharSequence errorMessage = getText(errorMsg);
         
         new AlertDialog.Builder(this)
         .setTitle(R.string.error)
@@ -386,7 +386,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
             }
             if (!(readGranted && writeGranted)) {
                 Toast.makeText(getApplicationContext(),
-                        getResources().getText(R.string.storage_permission_required),
+                        getText(R.string.storage_permission_required),
                         Toast.LENGTH_LONG).show();
             }
         }
@@ -396,7 +396,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (!hasShownStorageLegacyNotice) {
                 Toast.makeText(getApplicationContext(),
-                        getResources().getText(R.string.storage_legacy_mode_notice),
+                        getText(R.string.storage_legacy_mode_notice),
                         Toast.LENGTH_LONG).show();
                 hasShownStorageLegacyNotice = true;
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -476,7 +476,7 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
         int untransCount = str.countUntranslatedStrings();
         
         metadataView.setText(
-                getResources().getText(R.string.meta_str_no) + " " +
+                getText(R.string.meta_str_no) + " " +
                 (currentString+1) + "/" + str.size() +
                 
                 " (" +
@@ -485,17 +485,17 @@ public class MainActivity extends FragmentActivity implements GotoStringNumberDi
                 getResources().getQuantityString(R.plurals.meta_untranslated, untransCount, untransCount) +
                 ")" + '\n' +
                 
-                getResources().getText(R.string.meta_context) + " " +
+                getText(R.string.meta_context) + " " +
                 (currentStr.getContext().equals("") ?
                 "" : currentStr.getContext()) + '\n' +
                 
-                getResources().getText(R.string.meta_notes) + " " +
+                getText(R.string.meta_notes) + " " +
                 (currentStr.getTranslatorComments().equals("") ?
                 "" : currentStr.getTranslatorComments() + '\n') +
                 (currentStr.getExtractedComments().equals("") ?
                 "" : currentStr.getExtractedComments()) + '\n' +
                 
-                getResources().getText(R.string.meta_files) + " " +
+                getText(R.string.meta_files) + " " +
                 (currentStr.getReferences().size() == 0 ?
                 "" : currentStr.getReferencesAsString()) + '\n'
                 );

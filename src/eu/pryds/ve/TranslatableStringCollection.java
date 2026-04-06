@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.os.Parcel;
@@ -18,7 +19,7 @@ import android.os.Parcelable;
  * In-memory PO document model with parser/serializer helpers for translation workflow.
  */
 public class TranslatableStringCollection implements Parcelable {
-    Vector<TranslatableString> strings;
+    List<TranslatableString> strings;
     TranslatableString header; //contains po header info
     StringBuffer removedStrings = new StringBuffer(); // strings in bottom of file, prefixed "#~ "
     
@@ -29,7 +30,7 @@ public class TranslatableStringCollection implements Parcelable {
     public static final int ERROR_IO = 4;
     
     public TranslatableStringCollection() {
-        strings = new Vector<TranslatableString>();
+        strings = new ArrayList<TranslatableString>();
         header = null;
     }
     
@@ -107,7 +108,7 @@ public class TranslatableStringCollection implements Parcelable {
     }
 
     private int parse(BufferedReader reader, Activity activity) throws IOException {
-        Vector<String> poFileLines = new Vector<String>();
+        List<String> poFileLines = new ArrayList<String>();
         String line;
         while ((line = reader.readLine()) != null) {
             poFileLines.add(line);
@@ -284,9 +285,9 @@ public class TranslatableStringCollection implements Parcelable {
         // update existing header entry
         header.updateHeaderInfo(activity);
         
-        Vector<TranslatableString> strToWrite = (Vector<TranslatableString>) strings.clone();
+        List<TranslatableString> strToWrite = new ArrayList<TranslatableString>(strings);
         strToWrite.add(0, header);
-        Vector<String> outputLines = new Vector<String>();
+        List<String> outputLines = new ArrayList<String>();
         
         for (int i = 0; i < strToWrite.size(); i++) {
             if (i != 0)
@@ -458,7 +459,7 @@ public class TranslatableStringCollection implements Parcelable {
         }
     }
     
-    private static void writeMultilinesTo(Vector<String> outputLines,
+    private static void writeMultilinesTo(List<String> outputLines,
             String prefix, String writeString) {
         final int LINE_WIDTH = 80;
         if (writeString.length() > LINE_WIDTH - prefix.length()) {
@@ -482,6 +483,7 @@ public class TranslatableStringCollection implements Parcelable {
     // Parcelable stuff
     
     private TranslatableStringCollection(Parcel in) {
+        strings = new ArrayList<TranslatableString>();
         in.readTypedList(strings, TranslatableString.CREATOR);
         header = (TranslatableString) in.readParcelable(
                 TranslatableString.class.getClassLoader());

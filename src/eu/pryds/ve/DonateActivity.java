@@ -70,12 +70,12 @@ public class DonateActivity extends Activity implements OnClickListener {
         
         mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             public void onIabSetupFinished(IabResult result) {
-               if (!result.isSuccess()) {
-                  // Oh no, there was a problem.
-                   new AlertDialog.Builder(thisActivity)
-                   .setTitle(R.string.error)
-                   .setMessage(getResources().getText(R.string.donate_init_error) + " " + result.toString())
-                   .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                if (!result.isSuccess()) {
+                   // Oh no, there was a problem.
+                    new AlertDialog.Builder(thisActivity)
+                    .setTitle(R.string.error)
+                   .setMessage(getText(R.string.donate_init_error) + " " + result.toString())
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                        @Override
                        public void onClick(DialogInterface dialog, int which) {
                            // do nothing
@@ -104,7 +104,7 @@ public class DonateActivity extends Activity implements OnClickListener {
             if (result.isFailure()) {
                 new AlertDialog.Builder(thisActivity)
                 .setTitle(R.string.error)
-                .setMessage(getResources().getText(R.string.donate_query_error) + " (mQueryFinishedListener) " + result.toString())
+                .setMessage(getText(R.string.donate_query_error) + " (mQueryFinishedListener) " + result.toString())
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -180,7 +180,7 @@ public class DonateActivity extends Activity implements OnClickListener {
             } catch (Exception e) {
                 new AlertDialog.Builder(thisActivity)
                 .setTitle(R.string.error)
-                .setMessage(getResources().getText(R.string.donate_query_error) + " (check items for purchase) " + e.toString())
+                .setMessage(getText(R.string.donate_query_error) + " (check items for purchase) " + e.toString())
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -203,9 +203,11 @@ public class DonateActivity extends Activity implements OnClickListener {
         case R.id.donate_larger_button:
             mHelper.launchPurchaseFlow(this, SKU_DONATE_LARGER, 10001,   
                     mPurchaseFinishedListener, "");
+            break;
         case R.id.donate_large_button:
             mHelper.launchPurchaseFlow(this, SKU_DONATE_LARGE, 10001,   
                     mPurchaseFinishedListener, "");
+            break;
         default:
             break;
         }
@@ -234,7 +236,7 @@ public class DonateActivity extends Activity implements OnClickListener {
             if (result.isFailure()) {
                 new AlertDialog.Builder(thisActivity)
                     .setTitle(R.string.error)
-                    .setMessage(getResources().getText(R.string.donate_purchase_consume_error) + " " + result.toString())
+                    .setMessage(getText(R.string.donate_purchase_consume_error) + " " + result.toString())
                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -271,7 +273,7 @@ public class DonateActivity extends Activity implements OnClickListener {
             } else {
                 new AlertDialog.Builder(thisActivity)
                 .setTitle(R.string.error)
-                .setMessage(getResources().getText(R.string.donate_purchase_consume_error) + " " + result.toString())
+                .setMessage(getText(R.string.donate_purchase_consume_error) + " " + result.toString())
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

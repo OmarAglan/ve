@@ -49,7 +49,7 @@ public class FileChooser extends ListActivity {
                     if (!fileList[position].canRead()) {
                         // It's a directory, but it can't be read; show warning:
                         Toast.makeText(getApplicationContext(),
-                                getResources().getText(R.string.file_cannotreaddir) +
+                                getText(R.string.file_cannotreaddir) +
                                 "\n" + fileList[position], Toast.LENGTH_LONG).show();
                     } else {
                         // It's a directory and it can be read; update list:
@@ -59,7 +59,7 @@ public class FileChooser extends ListActivity {
                     if (!fileList[position].canRead()) {
                         // It's a file, but it can't be read; show warning:
                         Toast.makeText(getApplicationContext(),
-                                getResources().getText(R.string.file_cannotreadfile) +
+                                getText(R.string.file_cannotreadfile) +
                                 "\n" + fileList[position], Toast.LENGTH_LONG).show();
                     } else {
                         // It's a file and it can be read; return file path:
@@ -71,7 +71,7 @@ public class FileChooser extends ListActivity {
                                 PreferenceManager.getDefaultSharedPreferences(FileChooser.this);
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString(LAST_DIR, fileList[position].getParentFile().getAbsolutePath());
-                        editor.commit();
+                        editor.apply();
                         BackupManager bm = new BackupManager(FileChooser.this);
                         bm.dataChanged();
                         
@@ -93,11 +93,11 @@ public class FileChooser extends ListActivity {
         for (int i = 0; i < fileListStr.length; i++) {
             if (i == 0 && dir.getParent() != null &&
                     fileList[i].getAbsolutePath().equals(dir.getParentFile().getAbsolutePath())) {
-                fileListStr[i] = "" + getResources().getText(R.string.file_parent_dir);
+                fileListStr[i] = "" + getText(R.string.file_parent_dir);
             } else {
                 fileListStr[i] = fileList[i].getName() +
                         (fileList[i].isDirectory() ?
-                        " " + getResources().getText(R.string.file_directory_postfix) :
+                        " " + getText(R.string.file_directory_postfix) :
                         "");
             }
         }
@@ -106,7 +106,7 @@ public class FileChooser extends ListActivity {
                 R.layout.activity_file_chooser, fileListStr));
         
         Toast.makeText(getApplicationContext(),
-                getResources().getText(R.string.file_current_dir) +
+                getText(R.string.file_current_dir) +
                 "\n" + dir, Toast.LENGTH_SHORT).show();
     }
     

@@ -1,6 +1,7 @@
 package eu.pryds.ve;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Languages {
     public static final String DEFAULT_LANG_CODE = "en"; // use this if not found
@@ -32,7 +33,7 @@ public class Languages {
         return l.get(code) != null;
     }
     
-    private static final Hashtable<String, String[]> l = new Hashtable<String, String[]>() {{
+    private static final Map<String, String[]> l = new HashMap<String, String[]>() {{
         put("ach",   new String[]{"Acholi",      "2", "(n > 1)"});
         put("af",    new String[]{"Afrikaans",   "2", "(n != 1)"});
         put("ak",    new String[]{"Akan",        "2", "(n > 1)"});

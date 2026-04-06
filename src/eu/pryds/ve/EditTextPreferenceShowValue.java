@@ -33,13 +33,13 @@ public class EditTextPreferenceShowValue extends EditTextPreference {
         CharSequence summaryText;
         if (super.getText().trim().length() == 0) {
             if (super.getKey().equals("pref_name")) {
-                summaryText = getContext().getResources().getText(R.string.pref_name_summ);
+                summaryText = getContext().getText(R.string.pref_name_summ);
             } else if (super.getKey().equals("pref_email")) {
-                summaryText = getContext().getResources().getText(R.string.pref_email_summ);
+                summaryText = getContext().getText(R.string.pref_email_summ);
             } else if (super.getKey().equals("pref_lang")) {
-                summaryText = getContext().getResources().getText(R.string.pref_lang_summ);
+                summaryText = getContext().getText(R.string.pref_lang_summ);
             } else if (super.getKey().equals("pref_maillist")) {
-                summaryText = getContext().getResources().getText(R.string.pref_maillist_summ);
+                summaryText = getContext().getText(R.string.pref_maillist_summ);
             } else {
                 summaryText = "";
             }

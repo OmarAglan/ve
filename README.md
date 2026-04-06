@@ -104,9 +104,9 @@ For the highest long-term quality and maintainability:
 * Add automated testing (unit tests for PO parser and serialization, plus instrumentation tests for file open/save flows).
 * Move parsing/saving work off the main thread to avoid UI jank on large files.
 * Introduce architecture boundaries (for example ViewModel + repository-style separation) to reduce Activity complexity.
-* Replace legacy collections/utilities where practical with modern Java/Kotlin equivalents.
+* Continue reducing synchronous file/parse work on UI thread and validate UX on large files.
 * Add static quality gates (Android Lint, CI workflow, formatting/lint checks).
-* Audit and remove dead/disabled features or fully modernize them (for example old billing/backup paths).
+* Audit and remove dead/disabled features or fully modernize them (for example legacy in-app billing/backups).
 
 Build/testing quick start (Gradle)
 ----------------------------------
