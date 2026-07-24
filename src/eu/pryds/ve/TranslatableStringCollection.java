@@ -5,14 +5,21 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Vector;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * In-memory PO document model with parser/serializer helpers for translation workflow.
+ */
 public class TranslatableStringCollection implements Parcelable {
-    Vector<TranslatableString> strings;
+    List<TranslatableString> strings;
     TranslatableString header; //contains po header info
     StringBuffer removedStrings = new StringBuffer(); // strings in bottom of file, prefixed "#~ "
     
@@ -23,7 +30,7 @@ public class TranslatableStringCollection implements Parcelable {
     public static final int ERROR_IO = 4;
     
     public TranslatableStringCollection() {
-        strings = new Vector<TranslatableString>();
+        strings = new ArrayList<TranslatableString>();
         header = null;
     }
     
@@ -79,21 +86,34 @@ public class TranslatableStringCollection implements Parcelable {
     }
     
     public int parse(File poFile, Activity activity) {
-        Vector<String> poFileLines = new Vector<String>();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(poFile));
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                poFileLines.add(line);
+            try (BufferedReader reader = new BufferedReader(new FileReader(poFile))) {
+                return parse(reader, activity);
             }
-            reader.close();
         } catch (FileNotFoundException e) {
             return ERROR_FILE_NOT_FOUND;
         } catch (IOException e) {
             return ERROR_IO;
         }
-        
+    }
+
+    public int parse(InputStream poInputStream, Activity activity) {
+        try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(poInputStream, StandardCharsets.UTF_8))) {
+                return parse(reader, activity);
+            }
+        } catch (IOException e) {
+            return ERROR_IO;
+        }
+    }
+
+    private int parse(BufferedReader reader, Activity activity) throws IOException {
+        List<String> poFileLines = new ArrayList<String>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            poFileLines.add(line);
+        }
+
         if (poFileLines.size() == 0)
             return ERROR_FILE_EMPTY;
         if (!poFileLines.get(0).startsWith("#"))
@@ -265,9 +285,9 @@ public class TranslatableStringCollection implements Parcelable {
         // update existing header entry
         header.updateHeaderInfo(activity);
         
-        Vector<TranslatableString> strToWrite = (Vector<TranslatableString>) strings.clone();
+        List<TranslatableString> strToWrite = new ArrayList<TranslatableString>(strings);
         strToWrite.add(0, header);
-        Vector<String> outputLines = new Vector<String>();
+        List<String> outputLines = new ArrayList<String>();
         
         for (int i = 0; i < strToWrite.size(); i++) {
             if (i != 0)
@@ -439,7 +459,7 @@ public class TranslatableStringCollection implements Parcelable {
         }
     }
     
-    private static void writeMultilinesTo(Vector<String> outputLines,
+    private static void writeMultilinesTo(List<String> outputLines,
             String prefix, String writeString) {
         final int LINE_WIDTH = 80;
         if (writeString.length() > LINE_WIDTH - prefix.length()) {
@@ -463,6 +483,7 @@ public class TranslatableStringCollection implements Parcelable {
     // Parcelable stuff
     
     private TranslatableStringCollection(Parcel in) {
+        strings = new ArrayList<TranslatableString>();
         in.readTypedList(strings, TranslatableString.CREATOR);
         header = (TranslatableString) in.readParcelable(
                 TranslatableString.class.getClassLoader());

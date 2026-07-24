@@ -1,44 +1,49 @@
 package eu.pryds.ve;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 
+/**
+ * Represents one PO entry (or header entry) including source text, translation,
+ * comments, references and flags.
+ */
 public class TranslatableString implements Parcelable {
     private String translatorComments;
     private String extractedComments;
-    private Vector<String> reference;
-    private Vector<String> flags;
+    private List<String> reference;
+    private List<String> flags;
     private String previousContext;
     private String previousUntranslatedString;
     private String previousUntranslatedStringPlural;
     private String context;
     private String untranslatedString;
     private String untranslatedStringPlural;
-    private Hashtable<Integer, String> translatedString;
+    private Map<Integer, String> translatedString;
     
     public TranslatableString() {
         translatorComments = "";
         extractedComments = "";
-        reference = new Vector<String>();
-        flags = new Vector<String>();
+        reference = new ArrayList<String>();
+        flags = new ArrayList<String>();
         previousContext = "";
         previousUntranslatedString = "";
         previousUntranslatedStringPlural = "";
         context = "";
         untranslatedString = "";
         untranslatedStringPlural = "";
-        translatedString = new Hashtable<Integer, String>();
+        translatedString = new HashMap<Integer, String>();
     }
     
     public boolean isEmpty() {
@@ -80,7 +85,7 @@ public class TranslatableString implements Parcelable {
     }
     
     public void initiateHeaderInfo(Activity activity) {
-        translatedString = new Hashtable<Integer, String>();
+        translatedString = new HashMap<Integer, String>();
         translatedString.put(0, "");
         updateHeaderInfo(activity);
     }
@@ -95,7 +100,7 @@ public class TranslatableString implements Parcelable {
                 PreferenceManager.getDefaultSharedPreferences(activity);
         
         String[] headerArray = translatedString.get(0).split("\n");
-        Vector<String> headerLines = new Vector<String>(Arrays.asList(headerArray));
+        List<String> headerLines = new ArrayList<String>(Arrays.asList(headerArray));
         
         //last entry might end in a backslash-n. If so, remove those two chars:
         for (int i = 0; i < headerLines.size(); i++) {
@@ -139,7 +144,7 @@ public class TranslatableString implements Parcelable {
         
         
         headerArray = translatorComments.split("\n");
-        headerLines = new Vector<String>(Arrays.asList(headerArray));
+        headerLines = new ArrayList<String>(Arrays.asList(headerArray));
         
         int lineMatchingTranslatorInfo = -1;
         for (int i = 0; i < headerLines.size(); i++) {
@@ -179,7 +184,7 @@ public class TranslatableString implements Parcelable {
         translatorComments = implode(headerLines, "\n");
     }
     
-    private void replaceOrAddString(Vector<String> strings, String strHeader,
+    private void replaceOrAddString(List<String> strings, String strHeader,
             String strContent) {
         int index = -1;
         int l = strings.size();
@@ -248,7 +253,7 @@ public class TranslatableString implements Parcelable {
         extractedComments += postfix;
     }
     
-    public Vector<String> getReferences() {
+    public List<String> getReferences() {
         return reference;
     }
     
@@ -262,7 +267,7 @@ public class TranslatableString implements Parcelable {
         return str.toString();
     }
     
-    public Vector<String> getFlags() {
+    public List<String> getFlags() {
         return flags;
     }
     
@@ -336,7 +341,7 @@ public class TranslatableString implements Parcelable {
         untranslatedStringPlural += postfix;
     }
     
-    public Hashtable<Integer, String> getTranslatedString() {
+    public Map<Integer, String> getTranslatedString() {
         return translatedString;
     }
     
@@ -352,14 +357,14 @@ public class TranslatableString implements Parcelable {
     }
     
     public void resetTranslatedString() {
-        translatedString = new Hashtable<Integer, String>();
+        translatedString = new HashMap<Integer, String>();
     }
     
     public String toString() {
         return "[" + untranslatedString + "|" + untranslatedStringPlural + "]";
     }
     
-    private static String implode(Vector<String> array, String separator) {
+    private static String implode(List<String> array, String separator) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < array.size(); i++) {
             if (str.length() != 0)
@@ -369,7 +374,7 @@ public class TranslatableString implements Parcelable {
         return str.toString();
     }
     
-    private static boolean isEmpty(Vector<String> v) {
+    private static boolean isEmpty(List<String> v) {
         if (v == null)
             return true;
         for (int i = 0; i < v.size(); i++)
@@ -378,13 +383,11 @@ public class TranslatableString implements Parcelable {
         return true;
     }
     
-    private static boolean isEmpty(Hashtable<Integer, String> h) {
+    private static boolean isEmpty(Map<Integer, String> h) {
         if (h == null)
             return true;
-        Enumeration<Integer> e = h.keys();
-        while (e.hasMoreElements()) {
-            Integer i = e.nextElement();
-            if (!isEmpty(h.get(i)))
+        for (String value : h.values()) {
+            if (!isEmpty(value))
                 return false;
         }
         return true;
@@ -399,15 +402,15 @@ public class TranslatableString implements Parcelable {
     private TranslatableString(Parcel in) {
         translatorComments = in.readString();
         extractedComments = in.readString();
-        reference = (Vector<String>) in.readSerializable();
-        flags = (Vector<String>) in.readSerializable();
+        reference = (List<String>) in.readSerializable();
+        flags = (List<String>) in.readSerializable();
         previousContext = in.readString();
         previousUntranslatedString = in.readString();
         previousUntranslatedStringPlural = in.readString();
         context = in.readString();
         untranslatedString = in.readString();
         untranslatedStringPlural = in.readString();
-        translatedString = (Hashtable<Integer, String>) in.readSerializable();
+        translatedString = (Map<Integer, String>) in.readSerializable();
     }
     
     @Override

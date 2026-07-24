@@ -1,16 +1,16 @@
 package eu.pryds.ve;
 
 import android.os.Bundle;
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends AppCompatActivity {
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         // Display the fragment as the main content.
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new SettingsFragment()).commit();
     }
     

@@ -8,21 +8,33 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     tools:context=".MainActivity" >
-    
-    <Switch 
+
+    <TextView
+        android:id="@+id/approved_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:text="@string/approved"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <Switch
         android:id="@+id/approved"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:showText="true"
         android:textOn="@string/ready"
         android:textOff="@string/unfinished"
-        android:text="@string/approved"
         android:enabled="false" />
-    
-    <LinearLayout 
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
         android:orientation="horizontal" >
-        
+
         <Button
             android:id="@+id/plural0"
             android:layout_width="wrap_content"
@@ -31,7 +43,7 @@
             android:text="@string/plural_form_1"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
         <Button
             android:id="@+id/plural1"
             android:layout_width="wrap_content"
@@ -40,7 +52,7 @@
             android:text="@string/plural_form_2"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
         <Button
             android:id="@+id/plural2"
             android:layout_width="wrap_content"
@@ -49,7 +61,7 @@
             android:text="@string/plural_form_3"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
         <Button
             android:id="@+id/plural3"
             android:layout_width="wrap_content"
@@ -58,7 +70,7 @@
             android:text="@string/plural_form_4"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
         <Button
             android:id="@+id/plural4"
             android:layout_width="wrap_content"
@@ -67,7 +79,7 @@
             android:text="@string/plural_form_5"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
         <Button
             android:id="@+id/plural5"
             android:layout_width="wrap_content"
@@ -76,46 +88,89 @@
             android:text="@string/plural_form_6"
             android:visibility="gone"
             android:onClick="changePluralForm" />
-        
+
     </LinearLayout>
-    
+
     <View
         android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"/>
-    
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/divider_subtle"/>
+
+    <TextView
+        android:id="@+id/orig_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/content_spacing_medium"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:text="@string/orig_str"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
     <TextView
         android:id="@+id/orig_str"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
-        android:maxHeight="300dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
-        android:text="@string/orig_str"
-        android:textSize="14sp" />
-    
+        android:textColor="@color/text_primary"
+        android:lineSpacingExtra="2dp"
+        android:textSize="16sp" />
+
     <View
         android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"/>
-    
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/divider_subtle"/>
+
+    <TextView
+        android:id="@+id/transl_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/content_spacing_medium"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:text="@string/transl_str"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
     <EditText
         android:id="@+id/transl_str"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="@dimen/content_spacing_medium"
+        android:minHeight="@dimen/editor_min_height"
         android:scrollbars="vertical"
         android:gravity="top"
         android:hint="@string/transl_str"
         android:enabled="false"
-        android:textSize="14sp" />
+        android:background="@color/editor_background"
+        android:padding="@dimen/content_spacing_small"
+        android:lineSpacingExtra="2dp"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/metadata_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/content_spacing_small"
+        android:text="@string/meta_str_no"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/metadata"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
         android:lines="3"
         android:text="@string/meta_str_no"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp" />
     
 </LinearLayout>

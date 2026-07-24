@@ -2,10 +2,10 @@ package eu.pryds.ve;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import androidx.fragment.app.DialogFragment;
 
 public class AboutDialogFragment extends DialogFragment {
     @Override

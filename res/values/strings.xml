@@ -50,10 +50,6 @@
     <string name="plural_form_4">4</string>
     <string name="plural_form_5">5</string>
     <string name="plural_form_6">6</string>
-    <string name="title_activity_file_chooser">Choose File</string>
-    <string name="file_directory_postfix">[dir]</string>
-    <string name="file_parent_dir">[Parent directory]</string>
-    <string name="file_current_dir">Current directory:</string>
     <string name="error">Error</string>
     <string name="file_filenotexist">The file does not exist.</string>
     <string name="file_notpofile">The file does not seem to be a PO file.</string>

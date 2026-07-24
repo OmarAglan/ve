@@ -2,15 +2,13 @@ package eu.pryds.ve;
 
 import android.app.backup.BackupManager;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
+import androidx.preference.PreferenceFragmentCompat;
 
-public class SettingsFragment extends PreferenceFragment {
+public class SettingsFragment extends PreferenceFragmentCompat {
 	@Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         // Load the preferences from an XML resource
-        addPreferencesFromResource(R.xml.preferences);
+        setPreferencesFromResource(R.xml.preferences, rootKey);
     }
 	
 	@Override
